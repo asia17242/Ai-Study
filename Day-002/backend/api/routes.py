@@ -1,5 +1,6 @@
 import os
 import hashlib
+import logging
 from datetime import datetime, date
 from decimal import Decimal
 from typing import List, Dict, Any, Optional
@@ -7,6 +8,7 @@ from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Body
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from pydantic import BaseModel
+from openai import OpenAI
 
 from backend.core.config import settings
 from backend.db.session import get_db
@@ -19,6 +21,7 @@ from backend.services.analytics import AnalyticsEngine
 router = APIRouter()
 ai_agent = AIAgentService()
 vector_service = VectorService()
+logger = logging.getLogger(__name__)
 
 # Pydantic schemas for API endpoints
 
@@ -41,6 +44,9 @@ async def upload_pdf(file: UploadFile = File(...)):
     if not file.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="只支援 PDF 格式檔案 (.pdf)")
         
+    # 確保存儲目錄存在，防止路徑錯誤
+    os.makedirs(settings.RAW_PDF_DIR, exist_ok=True)
+    
     file_path = os.path.join(settings.RAW_PDF_DIR, file.filename)
     
     try:
@@ -771,4 +777,3 @@ def reset_database(db: Session = Depends(get_db)):
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"資料庫清空失敗: {str(e)}")
-

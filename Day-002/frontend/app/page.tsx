@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { apiService, StockOverview } from "@/services/api";
+import ClearButton from "@/components/ClearButton";
 
 export default function Dashboard() {
   const [stocks, setStocks] = useState<StockOverview[]>([]);
@@ -26,25 +27,9 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    let active = true;
-    apiService.getStocks()
-      .then((data) => {
-        if (active) {
-          setStocks(data);
-          setError("");
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-        if (active) {
-          setError("無法連線至後端 API。請確認後端服務已運行於 http://localhost:8000");
-          setLoading(false);
-        }
-      });
-    return () => {
-      active = false;
-    };
+    // 直接使用定義好的 fetchStocks 函式，減少冗餘代碼
+    fetchStocks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSeed = async () => {
@@ -60,12 +45,26 @@ export default function Dashboard() {
     }
   };
 
+  const handleReset = async () => {
+    if (!confirm("確定要清除所有數據嗎？這將會刪除資料庫中所有的研究報告與個股資訊，且無法復原。")) {
+      return;
+    }
+    try {
+      await apiService.resetDatabase();
+      setStocks([]);
+      setError("");
+    } catch (err) {
+      alert("清除數據失敗，請檢查後端連線。");
+    }
+  };
+
   // Filter stocks by search query
   const filteredStocks = stocks.filter(
     (s) =>
-      s.ticker.includes(searchQuery) ||
+      s.ticker.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.company_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.sector.toLowerCase().includes(searchQuery.toLowerCase())
+      // 防止 sector 為 null 時導致的崩潰
+      (s.sector?.toLowerCase() ?? "").includes(searchQuery.toLowerCase())
   );
 
   // Compute KPI totals
@@ -86,6 +85,9 @@ export default function Dashboard() {
 
   return (
     <div className="flex-1 flex flex-col overflow-y-auto p-6 md:p-8 relative">
+      {/* 一鍵清除按鈕 - 位於右上方 */}
+      <ClearButton onClear={handleReset} />
+
       {/* Top Header */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
