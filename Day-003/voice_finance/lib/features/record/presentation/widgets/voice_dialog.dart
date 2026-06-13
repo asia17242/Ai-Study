@@ -68,7 +68,7 @@ class _VoiceDialogState extends State<VoiceDialog> with SingleTickerProviderStat
         onError: (errorNotification) {
           setState(() {
             _isListening = false;
-            _statusText = '錯誤: ${errorNotification.errorString}';
+            _statusText = '錯誤: ${errorNotification.errorMsg}';
           });
           _pulsateController.stop();
         },
@@ -226,8 +226,10 @@ class _VoiceDialogState extends State<VoiceDialog> with SingleTickerProviderStat
             // Real-time Recognized Text Box
             Container(
               width: double.infinity,
-              minHeight: 100,
-              maxHeight: 180,
+              constraints: const BoxConstraints(
+                minHeight: 100,
+                maxHeight: 180,
+              ),
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
                 color: isDark ? Colors.white.withOpacity(0.06) : Colors.black.withOpacity(0.03),
