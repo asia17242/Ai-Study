@@ -10,6 +10,64 @@ let activePeriod = 'month';
 let currentModalTxId = null;
 const MONTHLY_BUDGET = 10000;
 
+// ==========================================================================
+// Anime Assistant Quote Engine
+// ==========================================================================
+const animeAssistantQuotes = {
+  onExpenseSubmitted: [
+    "嗶嗶——偵測到荷包進入加護病房！主人請立刻對錢包進行心肺復甦術！😭",
+    "哼，剛才那筆消費，本助理嚴重懷疑你只是在滿足自己的物慾！(盯—) 🧊",
+    "這哪是記帳，這是把下半輩子的積蓄一口氣超渡了吧？(抖)"
+  ],
+  onIncomeSubmitted: [
+    "哇！這次竟然記了一筆收入！看在你這麼努力存錢的份上，今晚允許你多看一集漫畫！✨",
+    "（拍手）主人太棒了！有收入進帳的感覺真好，離養活本助理又近了一步呢！✨"
+  ],
+  onPeriodToggled: [
+    "（嚼嚼）...啊！主人你切換到統計圖表了？這花得太狂了吧，錢包在哭泣哦！😱",
+    "點擊統計幹嘛？難道是在期待錢包裡會自己生出利息嗎？笨蛋主人～🍵",
+    "只是進來看看沒花錢？很好，保持雙手插口袋的姿勢，不准拿錢包！"
+  ],
+  onIdle: [
+    "主人～別只顧著看螢幕嘛，快來記一筆帳本助理瞧瞧你今天的戰績！😼",
+    "Zzz... （流口水）...啊！沒有在睡！本助理只是在閉目養神思考理財策略！",
+    "那個...主人，你確定不把剛剛買的那杯奶茶記上去嗎？我等你喔～☕"
+  ]
+};
+
+let typewriterTimer = null;
+
+function triggerAnimeQuote(eventType) {
+  const quotes = animeAssistantQuotes[eventType];
+  if (!quotes || quotes.length === 0) return;
+  const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+  const textEl = document.getElementById('manga-bubble-text');
+  const cursorEl = document.getElementById('typewriter-cursor');
+  const bubble = document.getElementById('manga-bubble');
+  
+  if (typewriterTimer) clearTimeout(typewriterTimer);
+  bubble.classList.add('visible');
+  cursorEl.classList.remove('paused');
+  
+  let i = -1;
+  const chars = [...randomQuote];
+  function typeNext() {
+    if (typewriterTimer) clearTimeout(typewriterTimer);
+    i++;
+    if (i < chars.length) {
+      textEl.textContent = chars.slice(0, i + 1).join('');
+      typewriterTimer = setTimeout(typeNext, 40 + Math.random() * 25);
+    } else {
+      cursorEl.classList.add('paused');
+      typewriterTimer = setTimeout(() => {
+        bubble.classList.remove('visible');
+        textEl.textContent = '';
+      }, 6000);
+    }
+  }
+  typeNext();
+}
+
 // Category colors mapping (corresponds to CSS colors)
 const categoryColors = {
   '餐飲': '#ff9f43',
@@ -265,7 +323,13 @@ function bindUIEvents() {
       pill.classList.add('active');
       activePeriod = pill.dataset.period;
       updateDashboard();
+      triggerAnimeQuote('onPeriodToggled');
     });
+  });
+  
+  // Anime character click
+  document.getElementById('anime-character').addEventListener('click', () => {
+    triggerAnimeQuote('onIdle');
   });
   
   // Modal events
@@ -326,6 +390,8 @@ async function parseVoiceTransaction(text) {
       updateDashboard();
       
       statusEl.innerHTML = `✅ 記帳成功！<b>$${newTx.amount}</b> (${newTx.category})`;
+      
+      triggerAnimeQuote(newTx.type === 'income' ? 'onIncomeSubmitted' : 'onExpenseSubmitted');
       
       // Clear manual input just in case
       document.getElementById('manual-text-input').value = '';
@@ -540,9 +606,6 @@ function updateDashboard() {
   const budgetLabelEl = document.querySelector('.budget-label');
   const budgetLabels = { week: '本週預算使用率', month: '本月預算使用率', year: '本年預算使用率' };
   if (budgetLabelEl) budgetLabelEl.innerText = budgetLabels[activePeriod] || '預算使用率';
-  
-  // 6. Render AI Insights
-  renderInsights(totalExpense, spendRatio, displayTx);
 }
 
 // Dynamic SVG Doughnut Pie Chart generator
@@ -884,61 +947,4 @@ function deleteFromModal() {
   saveTransactionsToStorage();
   updateDashboard();
   closeTransactionModal();
-}
-
-// ==========================================================================
-// AI Financial Insights
-// ==========================================================================
-function renderInsights(totalExpense, spendRatio, displayTx) {
-  const container = document.getElementById('insights-list');
-  const insights = [];
-  
-  if (spendRatio > 0.8) {
-    const topCat = getTopExpenseCategory(displayTx);
-    const periodNames = { week: '本週', month: '本月', year: '本年' };
-    const periodName = periodNames[activePeriod] || '本期';
-    insights.push({
-      icon: '⚠️',
-      text: `您的${periodName}預算已達 ${Math.round(spendRatio * 100)}% 臨界值！${
-        topCat ? `主要受「${topCat.name}」類別消費 ($${topCat.amount.toLocaleString()}) 影響` : ''
-      }，建議暫緩非必要支出。`
-    });
-  }
-  
-  const allTx = getFilteredTransactions();
-  const oilTx = allTx.filter(t => (t.description || '').includes('中油') || (t.merchant || '').includes('中油'));
-  if (oilTx.length > 0) {
-    insights.push({
-      icon: '💡',
-      text: '偵測到頻繁的中油交通消費，建議確認「中油Pay」搭配之信用卡（如國泰CUBE卡）回饋權益是否已切換，可優化 3%~5% 儲值效益。'
-    });
-  }
-  
-  if (insights.length === 0) {
-    insights.push({
-      icon: '✅',
-      text: '目前財務狀況良好，無需特別警示。繼續保持記帳習慣，AI 將持續為您分析消費模式。'
-    });
-  }
-  
-  container.innerHTML = insights.map(i => `
-    <div class="insight-item">
-      <span class="insight-bullet">${i.icon}</span>
-      <span class="insight-text">${i.text}</span>
-    </div>
-  `).join('');
-}
-
-function getTopExpenseCategory(displayTx) {
-  const expenses = displayTx.filter(t => t.type === 'expense');
-  const catMap = {};
-  expenses.forEach(e => {
-    catMap[e.category] = (catMap[e.category] || 0) + e.amount;
-  });
-  let topCat = null;
-  let maxAmount = 0;
-  Object.entries(catMap).forEach(([cat, amt]) => {
-    if (amt > maxAmount) { maxAmount = amt; topCat = { name: cat, amount: amt }; }
-  });
-  return topCat;
 }

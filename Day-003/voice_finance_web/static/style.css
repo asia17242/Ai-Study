@@ -1112,44 +1112,112 @@ input[type="text"]:focus {
 }
 
 /* ==========================================================================
-   AI Financial Insights Panel
+   Floating Anime Assistant
    ========================================================================== */
-.insight-icon {
-  color: #FFD700 !important;
-}
-
-.insights-list {
+.anime-assistant {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 50;
   display: flex;
-  flex-direction: column;
-  gap: 14px;
+  align-items: flex-end;
+  gap: 10px;
+  pointer-events: none;
 }
 
-.insight-item {
-  display: flex;
-  gap: 12px;
-  padding: 14px 16px;
-  background: rgba(255, 215, 0, 0.04);
-  border: 1px solid rgba(255, 215, 0, 0.08);
-  border-radius: var(--border-radius-sm);
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--text-secondary);
-  transition: all 0.2s ease;
-}
-
-.insight-item:hover {
-  border-color: rgba(255, 215, 0, 0.18);
-  background: rgba(255, 215, 0, 0.07);
-}
-
-.insight-item .insight-bullet {
+.anime-character {
+  pointer-events: auto;
   flex-shrink: 0;
-  font-size: 16px;
-  margin-top: 1px;
+  animation: anime-bobbing 3s ease-in-out infinite;
+  cursor: pointer;
+  transition: transform 0.2s ease;
 }
 
-.insight-item .insight-text {
-  flex: 1;
+.anime-character:hover {
+  transform: scale(1.08);
+}
+
+.anime-character:active {
+  transform: scale(0.95);
+}
+
+@keyframes anime-bobbing {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.anime-avatar {
+  filter: drop-shadow(0 4px 12px rgba(0, 240, 255, 0.25));
+}
+
+/* Manga Speech Bubble */
+.manga-bubble {
+  position: relative;
+  background: #1A1D26;
+  border: 2px solid #FFD700;
+  border-radius: 14px;
+  padding: 12px 15px;
+  max-width: 260px;
+  min-width: 160px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(8px) scale(0.95);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 215, 0, 0.08);
+  pointer-events: auto;
+}
+
+.manga-bubble.visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0) scale(1);
+}
+
+/* Manga tail arrow pointing right toward character */
+.manga-bubble::after {
+  content: '';
+  position: absolute;
+  right: -12px;
+  bottom: 18px;
+  width: 0;
+  height: 0;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-left: 12px solid #FFD700;
+  filter: drop-shadow(2px 0 0 #FFD700);
+}
+
+.manga-bubble-inner {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+}
+
+.manga-bubble-text {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-primary);
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.typewriter-cursor {
+  display: inline-block;
+  color: #FFD700;
+  font-weight: 300;
+  font-size: 14px;
+  margin-left: 2px;
+  animation: cursor-blink 0.8s step-end infinite;
+}
+
+.typewriter-cursor.paused {
+  animation: none;
+  opacity: 0;
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 /* ==========================================================================
