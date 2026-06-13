@@ -26,7 +26,7 @@
       <div class="logo-area">
         <span class="material-icons-round logo-icon">mic</span>
         <h1 class="logo-text">Voice Finance</h1>
-        <span class="badge">Web PoC v2.0</span>
+        <span class="badge">Web PoC v3.0</span>
       </div>
       <div class="header-right">
         <span id="connection-status" class="status-indicator connected">
@@ -77,6 +77,15 @@
             <div class="card-footer">
               <span class="footer-label">消費額度</span>
             </div>
+            <div class="budget-progress-container">
+              <div class="budget-progress-header">
+                <span class="budget-label">本月預算使用率</span>
+                <span class="budget-percent" id="budget-percent">0%</span>
+              </div>
+              <div class="budget-progress-track">
+                <div class="budget-progress-fill" id="budget-progress-fill" style="width: 0%;"></div>
+              </div>
+            </div>
           </div>
         </section>
         
@@ -88,6 +97,13 @@
           <div class="mic-container">
             <button id="mic-btn" class="mic-button">
               <span class="material-icons-round mic-icon">mic</span>
+              <svg class="mic-waveform" viewBox="0 0 36 36" width="40" height="40">
+                <rect class="wf-bar" x="3" y="12" width="3" height="12" rx="1.5" />
+                <rect class="wf-bar" x="9" y="8" width="3" height="20" rx="1.5" />
+                <rect class="wf-bar" x="15" y="4" width="3" height="28" rx="1.5" />
+                <rect class="wf-bar" x="21" y="8" width="3" height="20" rx="1.5" />
+                <rect class="wf-bar" x="27" y="12" width="3" height="12" rx="1.5" />
+              </svg>
               <div class="mic-pulse-ring one"></div>
               <div class="mic-pulse-ring two"></div>
             </button>
@@ -103,6 +119,15 @@
             <div id="transcript-text" class="transcript-placeholder">您說的話將在此即時顯示...</div>
           </div>
           
+          <!-- Action button group for manual validation -->
+          <div class="transcript-actions" id="transcript-actions" style="display: none;">
+            <button id="btn-edit-transcript" class="btn btn-outline">
+              <span class="material-icons-round" style="font-size:14px;">edit</span> 手動修正
+            </button>
+            <button id="btn-confirm-write" class="btn btn-success">確認寫入</button>
+            <button id="btn-cancel-reset" class="btn btn-danger">取消</button>
+          </div>
+          
           <!-- Hints -->
           <div class="speech-hints">
             <span class="hint-title">您可以試著說：</span>
@@ -111,6 +136,9 @@
               <button class="hint-tag" onclick="setInputText('昨天去中油用中油Pay加滿油花了800塊')">"昨天去中油用中油Pay加滿油花了800塊"</button>
               <button class="hint-tag" onclick="setInputText('剛剛去7-11買大杯冰拿鐵花了45元')">"剛剛去7-11買大杯冰拿鐵花了45元"</button>
               <button class="hint-tag" onclick="setInputText('今天收到薪水五萬元')">"今天收到薪水五萬元"</button>
+              <button class="hint-tag" onclick="setInputText('幫我查上個月手搖飲總共花多少錢？')">「幫我查上個月手搖飲總共花多少錢？」</button>
+              <button class="hint-tag" onclick="setInputText('昨天的中油加油費是多少？')">「昨天的中油加油費是多少？」</button>
+              <button class="hint-tag" onclick="setInputText('上週去全聯買了什麼？')">「上週去全聯買了什麼？」</button>
             </div>
           </div>
           
@@ -135,10 +163,14 @@
         <section class="glass-card chart-card">
           <div class="card-title-row">
             <h2 class="section-title">支出統計分析</h2>
-            <span class="material-icons-round section-icon">pie_chart</span>
+            <div class="period-switcher">
+              <button class="period-pill active" data-period="month" id="period-month">月</button>
+              <button class="period-pill" data-period="week" id="period-week">週</button>
+              <button class="period-pill" data-period="year" id="period-year">年</button>
+            </div>
           </div>
           <div class="chart-content">
-            <div class="chart-visual">
+            <div class="chart-visual pie-visual" id="pie-chart-visual">
               <svg id="pie-chart-svg" viewBox="0 0 200 200">
                 <circle cx="100" cy="100" r="70" class="chart-background-circle"></circle>
                 <!-- Dynamic SVG Path elements go here -->
@@ -148,16 +180,32 @@
                 <span class="center-value" id="chart-total-value">$0</span>
               </div>
             </div>
+            <div class="chart-visual bar-visual" id="bar-chart-visual" style="display: none;">
+              <svg id="bar-chart-svg" viewBox="0 0 420 200" preserveAspectRatio="xMidYMid meet">
+                <!-- Dynamic SVG bar elements go here -->
+              </svg>
+            </div>
             <div class="chart-legend" id="chart-legend-container">
               <!-- Legends will be generated dynamically -->
             </div>
           </div>
         </section>
         
+        <!-- AI Insights Card -->
+        <section class="glass-card insights-card">
+          <div class="card-title-row">
+            <h2 class="section-title">AI 財務洞察</h2>
+            <span class="material-icons-round section-icon insight-icon">psychology</span>
+          </div>
+          <div class="insights-list" id="insights-list">
+            <!-- Dynamically populated -->
+          </div>
+        </section>
+        
         <!-- Transaction List Card -->
         <section class="glass-card ledger-card">
           <div class="card-title-row">
-            <h2 class="section-title">今日記帳明細列表</h2>
+            <h2 class="section-title" id="ledger-section-title">本月記帳明細列表</h2>
             <span class="material-icons-round section-icon">receipt_long</span>
           </div>
           <div class="ledger-table-container">
@@ -166,7 +214,7 @@
                 <tr>
                   <th>類別 / 日期</th>
                   <th>描述</th>
-                  <th>付款方式</th>
+                  <th>帳戶/工具</th>
                   <th>金額</th>
                   <th>操作</th>
                 </tr>
@@ -186,6 +234,27 @@
       </div>
       
     </main>
+  </div>
+  
+  <!-- Transaction Detail Modal -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal-drawer" id="modal-drawer">
+      <div class="modal-header">
+        <h3 class="modal-title">交易明細編輯</h3>
+        <button class="modal-close-btn" id="modal-close-btn">
+          <span class="material-icons-round">close</span>
+        </button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer">
+        <button class="btn btn-danger" id="modal-delete-btn">
+          <span class="material-icons-round" style="font-size:14px;">delete_outline</span> 刪除交易
+        </button>
+        <button class="btn btn-primary" id="modal-save-btn">
+          <span class="material-icons-round" style="font-size:14px;">save</span> 儲存變更
+        </button>
+      </div>
+    </div>
   </div>
   
   <!-- JavaScript Files -->

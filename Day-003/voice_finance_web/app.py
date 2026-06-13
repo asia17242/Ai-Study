@@ -34,6 +34,7 @@ class TransactionResponse(BaseModel):
     date: str = Field(description="交易日期，格式為 YYYY-MM-DD")
     merchant: Optional[str] = Field(default="未知", description="商家名稱")
     payment_method: Optional[str] = Field(default="現金", description="付款方式：'現金'、'信用卡' 或 '電子支付'")
+    items: Optional[List[str]] = Field(default=[], description="交易明細中的個別商品或細項列表，例如：['鮮奶', '麵包']")
 
 class VoiceInput(BaseModel):
     text: str
@@ -74,6 +75,41 @@ else:
 
 def mock_parse(text: str, current_date: str) -> dict:
     """Fallback parser for local testing without Gemini API Key."""
+    # Handle Bidirectional AI Retrieval Queries
+    if "上個月手搖飲" in text or "手搖飲總共花多少錢" in text:
+        return {
+            "amount": 0,
+            "category": "其他",
+            "description": "💡 AI 查詢結果：您上個月（5月）手搖飲共消費 6 次，累計金額為 $380 元。",
+            "type": "expense",
+            "date": current_date,
+            "merchant": "AI 搜尋",
+            "payment_method": "系統查詢",
+            "items": []
+        }
+    elif "中油加油費" in text or "中油加油費是多少" in text:
+        return {
+            "amount": 0,
+            "category": "其他",
+            "description": "💡 AI 查詢結果：昨天去中油加油共花費 $800 元（使用電子支付）。",
+            "type": "expense",
+            "date": current_date,
+            "merchant": "AI 搜尋",
+            "payment_method": "系統查詢",
+            "items": []
+        }
+    elif "全聯買了什麼" in text:
+        return {
+            "amount": 0,
+            "category": "其他",
+            "description": "💡 AI 查詢結果：上週去全聯購買了 鮮奶、麵包，共計 $250 元（使用信用卡）。",
+            "type": "expense",
+            "date": current_date,
+            "merchant": "AI 搜尋",
+            "payment_method": "系統查詢",
+            "items": []
+        }
+
     amount = 100
     match = re.search(r'\d+', text)
     if match:
@@ -94,6 +130,17 @@ def mock_parse(text: str, current_date: str) -> dict:
     category = "其他"
     merchant = "未知"
     payment_method = "現金"
+    items = []
+
+    # Simple item extraction for demo
+    if "鮮奶" in text:
+        items.append("鮮奶")
+    if "麵包" in text:
+        items.append("麵包")
+    if "拿鐵" in text or "咖啡" in text:
+        items.append("大杯冰拿鐵")
+    if "油" in text:
+        items.append("無鉛汽油")
 
     if any(k in text for k in ["賺", "薪水", "收入", "薪資"]):
         tx_type = "income"
@@ -151,7 +198,8 @@ def mock_parse(text: str, current_date: str) -> dict:
         "type": tx_type,
         "date": tx_date.strftime("%Y-%m-%d"),
         "merchant": merchant,
-        "payment_method": payment_method
+        "payment_method": payment_method,
+        "items": items
     }
 
 @app.post("/api/parse", response_model=TransactionResponse)
@@ -164,10 +212,11 @@ async def parse_voice(input: VoiceInput):
     system_instruction = (
         "你是一個專業的財務記帳分析師，專門負責將口語或語音文字轉換為結構化記帳 JSON。\n"
         f"當前系統時間基準為（current_date）：{input.current_date}。\n"
-        "請精確解析出交易金額、類別、備註、收支類型、交易日期、商家名稱、付款方式。\n"
+        "請精確解析出交易金額、類別、備註、收支類型、交易日期、商家名稱、付款方式，並提取具體商品項目放入 items 陣列。\n"
         "1. 台灣常見商家：如全聯、中油、大買家、家樂福、7-11、全家、康是美等，請標註於 merchant 欄位。\n"
         "2. 付款方式 (payment_method)：必須精準歸類為 '現金'、'信用卡' 或 '電子支付' 之一（街口支付, Line Pay, 中油Pay, 悠遊卡等皆屬 '電子支付'）。\n"
         "3. 日期 (date)：若提及「昨天」、「前天」、「大前天」，請用系統時間基準扣除對應天數算得具體日期。\n"
+        "4. 商品細項 (items)：若提及購買了多個具體物件（如鮮奶和麵包），請拆分為字串陣列放入 items 欄位，例如 ['鮮奶', '麵包']。若無具體商品，則傳回空陣列 []。\n"
         "回傳格式必須為符合以下 Pydantic 欄位定義的 JSON。\n"
         "金額(amount)必須為數字類型，收支類型(type)必須是 'expense' 或 'income'。"
     )
@@ -229,7 +278,8 @@ async def parse_voice(input: VoiceInput):
                 "type": parsed_data.get("type", "expense"),
                 "date": parsed_data.get("date", input.current_date),
                 "merchant": parsed_data.get("merchant", "未知"),
-                "payment_method": parsed_data.get("payment_method", "現金")
+                "payment_method": parsed_data.get("payment_method", "現金"),
+                "items": parsed_data.get("items", [])
             }
             return TransactionResponse(**normalized)
         except Exception as e:
