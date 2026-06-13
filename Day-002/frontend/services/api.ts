@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
 
 export interface StockOverview {
   id: number;
@@ -24,6 +24,18 @@ export interface BrokerRating {
   rating: string;
   target_price: number | null;
   date: string;
+}
+
+export interface ExtractedReportData {
+  ticker: string;
+  company: string;
+  broker: string;
+  rating: string;
+  target_price: number | null;
+  analyst: string;
+  report_date: string;
+  revenue_growth: number | null;
+  eps: number | null;
 }
 
 export interface StockDetails {
@@ -155,7 +167,7 @@ export const apiService = {
   },
 
   // Process uploaded PDF
-  async processPdf(fileName: string): Promise<{ success: boolean; skipped: boolean; message: string; extracted_data?: any }> {
+  async processPdf(fileName: string): Promise<{ success: boolean; skipped: boolean; message: string; extracted_data?: ExtractedReportData }> {
     const res = await fetch(`${API_BASE_URL}/process`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -193,5 +205,15 @@ export const apiService = {
     });
     if (!res.ok) throw new Error("載入種子資料失敗");
     return res.json();
+  },
+
+  // Reset database
+  async resetDatabase(): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(`${API_BASE_URL}/reset`, {
+      method: "POST",
+    });
+    if (!res.ok) throw new Error("重設數據失敗");
+    return res.json();
   }
 };
+

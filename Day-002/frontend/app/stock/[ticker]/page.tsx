@@ -29,13 +29,17 @@ export default function StockDetail({ params }: { params: Promise<{ ticker: stri
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    const timer = setTimeout(() => setIsMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
     const fetchDetail = async () => {
       try {
         setLoading(true);
         const detail = await apiService.getStockDetail(ticker);
         setData(detail);
-      } catch (err: any) {
+      } catch (err) {
         console.error(err);
         setError("載入個股詳情失敗，找不到該個股資訊。");
       } finally {

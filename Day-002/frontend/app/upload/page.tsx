@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { apiService, StockOverview } from "@/services/api";
+import { apiService, StockOverview, ExtractedReportData } from "@/services/api";
 
 interface UploadTask {
   id: string;
@@ -12,17 +12,7 @@ interface UploadTask {
   status: "idle" | "uploading" | "parsing" | "completed" | "failed";
   stepText: string;
   duplicate?: boolean;
-  extractedData?: {
-    ticker: string;
-    company: string;
-    broker: string;
-    rating: string;
-    target_price: number | null;
-    analyst: string;
-    report_date: string;
-    revenue_growth: number | null;
-    eps: number | null;
-  };
+  extractedData?: ExtractedReportData;
   error?: string;
 }
 
@@ -41,7 +31,17 @@ export default function UploadPage() {
   };
 
   useEffect(() => {
-    fetchTrackedStocks();
+    let active = true;
+    apiService.getStocks()
+      .then((data) => {
+        if (active) setStocksList(data);
+      })
+      .catch((err) => {
+        console.error("無法取得追蹤個股", err);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -153,8 +153,9 @@ export default function UploadPage() {
       
       // Refresh stocks list dashboard stats
       fetchTrackedStocks();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
+      const errorMessage = err instanceof Error ? err.message : "發生未知錯誤";
       setTasks((prev) =>
         prev.map((t) =>
           t.id === taskId
@@ -163,7 +164,7 @@ export default function UploadPage() {
                 status: "failed",
                 progress: 100,
                 stepText: "管線處理失敗。",
-                error: err.message || "發生未知錯誤",
+                error: errorMessage,
               }
             : t
         )

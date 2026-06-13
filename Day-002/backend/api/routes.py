@@ -754,3 +754,21 @@ def seed_database(db: Session = Depends(get_db)):
             
     db.commit()
     return {"success": True, "message": "資料庫種子數據已成功載入！TSMC(2330)、聯發科(2454)、鴻海(2317)與大立光(3008)的歷史報告已就緒。"}
+
+
+@router.post("/reset")
+def reset_database(db: Session = Depends(get_db)):
+    """
+    Clears all data in the database (stocks, brokers, and cascade deleted reports, embeddings, forecasts, themes)
+    to reset the collected reports count to zero.
+    """
+    try:
+        # Cascade delete is configured on relations, so deleting Stocks & Brokers will clean up child records
+        db.query(Stock).delete()
+        db.query(Broker).delete()
+        db.commit()
+        return {"success": True, "message": "資料庫已成功歸零，所有收錄的研究報告與個股數據均已刪除。"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"資料庫清空失敗: {str(e)}")
+

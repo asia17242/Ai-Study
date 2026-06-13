@@ -17,9 +17,9 @@ export default function ReportPage({ params }: { params: Promise<{ ticker: strin
         setLoading(true);
         const data = await apiService.getAIReport(ticker);
         setReport(data);
-      } catch (err: any) {
+      } catch (err) {
         console.error(err);
-        setError(err.message || "生成報告失敗，可能該個股尚無任何券商研究資料。");
+        setError(err instanceof Error ? err.message : "生成報告失敗，可能該個股尚無任何券商研究資料。");
       } finally {
         setLoading(false);
       }

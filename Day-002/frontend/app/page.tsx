@@ -11,13 +11,13 @@ export default function Dashboard() {
   const [seeding, setSeeding] = useState(false);
   const [error, setError] = useState("");
 
-  const fetchStocks = async () => {
+  const fetchStocks = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const data = await apiService.getStocks();
       setStocks(data);
       setError("");
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
       setError("無法連線至後端 API。請確認後端服務已運行於 http://localhost:8000");
     } finally {
@@ -26,7 +26,25 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    fetchStocks();
+    let active = true;
+    apiService.getStocks()
+      .then((data) => {
+        if (active) {
+          setStocks(data);
+          setError("");
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        if (active) {
+          setError("無法連線至後端 API。請確認後端服務已運行於 http://localhost:8000");
+          setLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleSeed = async () => {
@@ -34,8 +52,9 @@ export default function Dashboard() {
       setSeeding(true);
       await apiService.seedDatabase();
       await fetchStocks();
-    } catch (err: any) {
-      alert("載入模擬數據失敗: " + err.message);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      alert("載入模擬數據失敗: " + errorMessage);
     } finally {
       setSeeding(false);
     }
@@ -81,7 +100,7 @@ export default function Dashboard() {
         {/* Reload / Seed Buttons */}
         <div className="flex items-center gap-3">
           <button
-            onClick={fetchStocks}
+            onClick={() => fetchStocks()}
             className="px-4 py-2 text-sm font-medium rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 transition-colors flex items-center gap-2 border border-slate-700"
           >
             <svg

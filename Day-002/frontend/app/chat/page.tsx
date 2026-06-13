@@ -53,6 +53,7 @@ function ChatRoom() {
   const [loading, setLoading] = useState(false);
   const [selectedTicker, setSelectedTicker] = useState<string | undefined>(initialTicker);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const messageCounterRef = useRef(0);
 
   // Auto-scroll to bottom of chat
   useEffect(() => {
@@ -63,7 +64,8 @@ function ChatRoom() {
     if (!textToSend.trim() || loading) return;
 
     // Add user message
-    const userMsgId = Date.now().toString();
+    messageCounterRef.current += 1;
+    const userMsgId = `user-${messageCounterRef.current}`;
     const userMsg: Message = {
       id: userMsgId,
       sender: "user",
@@ -77,8 +79,10 @@ function ChatRoom() {
       // Send API request
       const response = await apiService.chat(textToSend, selectedTicker);
       
+      messageCounterRef.current += 1;
+      const aiMsgId = `ai-${messageCounterRef.current}`;
       const aiMsg: Message = {
-        id: (Date.now() + 1).toString(),
+        id: aiMsgId,
         sender: "ai",
         text: response.answer,
         sources: response.sources,
@@ -86,12 +90,14 @@ function ChatRoom() {
       };
       
       setMessages((prev) => [...prev, aiMsg]);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
+      messageCounterRef.current += 1;
+      const errorMsgId = `err-${messageCounterRef.current}`;
       setMessages((prev) => [
         ...prev,
         {
-          id: (Date.now() + 1).toString(),
+          id: errorMsgId,
           sender: "ai",
           text: "十分抱歉，我現在無法處理您的請求。請檢查後端 API 連線狀況，或稍後再試。",
         },
