@@ -41,10 +41,28 @@
 
 ---
 
+## 🔧 技術債與優化項目 (Technical Debt Resolved)
+在進入 Milestone 2 之前，我們已根據主管的反饋完成以下兩項重要技術優化：
+
+### 1. 🕒 時間基準動態處理 (Dynamic Time Baseline)
+* **現況與技術債**：原 PoC 後端提示詞中寫死了基準日期為 2026 年 6 月 13 日，這會導致未來的交易解析日期產生邏輯偏差。
+* **優化方式**：
+  - **前端 Flutter** 於 [`api_service.dart`](./voice_finance/lib/core/services/api_service.dart) 呼叫時，會動態獲取當前裝置的系統時間格式化為 `YYYY-MM-DD` 傳遞給 API 後端。
+  - **後端 Python**（包括 PoC 解析器與 FastAPI 後端）重構為接收動態的 `current_date` 參數，並動態更新 Gemini API 的系統提示詞與解析上下文，以保障「昨天」、「前天」等時間代名詞在未來任何一天都能正確解析。
+
+### 2. 📦 Hive 跨平台初始化路徑統一
+* **現況與技術債**：原先的本地資料來源直接讀取 Hive Box，缺少在不同作業系統（Android/iOS/Windows/macOS/Linux/Web）下的路徑相容性保障，可能引發路徑讀寫錯誤。
+* **優化方式**：
+  - 在 [`transaction_local_datasource.dart`](./voice_finance/lib/features/record/data/transaction_local_datasource.dart) 中，導入 `hive_flutter` 並調用 `await Hive.initFlutter();`。
+  - 此舉動態處理了多平台底層的資料儲存路徑差異，抹平了不同作業系統（尤其是桌面端與移動端）的實體檔案讀寫阻礙。
+
+---
+
 ## 📁 專案目錄結構
 
 ```
 Day-003/
+├── Milestone1_Report.md          # 本份驗收報告
 ├── README.md                     # 專案首頁說明文件
 └── voice_finance/
     ├── lib/                      # Flutter 原始碼
