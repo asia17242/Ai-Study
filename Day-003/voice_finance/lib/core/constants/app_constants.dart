@@ -1,7 +1,7 @@
 class AppConstants {
   static const String appName = 'Voice Finance';
   static const String geminiApiKey = 'GEMINI_API_KEY';
-  static const String baseUrl = 'http://localhost:8000';
+  static const String baseUrl = 'http://192.168.0.16:8000';
   static const List<String> expenseCategories = [
     '餐飲',
     '交通',

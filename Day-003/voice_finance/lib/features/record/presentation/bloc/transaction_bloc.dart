@@ -67,7 +67,9 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
         amount: (result['amount'] as num).toDouble(),
         category: result['category'] as String? ?? '其他',
         description: result['description'] as String? ?? event.text,
-        date: DateTime.now(),
+        date: result['date'] != null
+            ? (DateTime.tryParse(result['date'] as String) ?? DateTime.now())
+            : DateTime.now(),
         type: result['type'] == 'income' ? TransactionType.income : TransactionType.expense,
       );
 

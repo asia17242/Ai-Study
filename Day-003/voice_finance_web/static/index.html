@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Finance — 語音記帳</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  
+  <!-- Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  
+  <!-- App Container -->
+  <div class="app-container">
+    
+    <!-- Header -->
+    <header class="app-header">
+      <div class="logo-area">
+        <span class="material-icons-round logo-icon">mic</span>
+        <h1 class="logo-text">Voice Finance</h1>
+        <span class="badge">Web PoC v2.0</span>
+      </div>
+      <div class="header-right">
+        <span id="connection-status" class="status-indicator connected">
+          <span class="indicator-dot"></span> 後端已連線
+        </span>
+      </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="app-main-grid">
+      
+      <!-- Left Column: Dashboard Stats, Mic, and Transaction Form -->
+      <div class="grid-left">
+        
+        <!-- Summary Cards -->
+        <section class="summary-cards">
+          <!-- Balance Card -->
+          <div class="glass-card balance-card">
+            <div class="card-header">
+              <span class="card-title">帳戶結餘</span>
+              <span class="material-icons-round card-icon">account_balance_wallet</span>
+            </div>
+            <div class="card-value" id="total-balance">$0</div>
+            <div class="card-footer">
+              <span id="balance-status" class="trend-text positive">狀態良好</span>
+            </div>
+          </div>
+          
+          <!-- Income Card -->
+          <div class="glass-card income-card">
+            <div class="card-header">
+              <span class="card-title">總收入</span>
+              <span class="material-icons-round card-icon income">arrow_upward</span>
+            </div>
+            <div class="card-value income-color" id="total-income">$0</div>
+            <div class="card-footer">
+              <span class="footer-label">累計記帳</span>
+            </div>
+          </div>
+          
+          <!-- Expense Card -->
+          <div class="glass-card expense-card">
+            <div class="card-header">
+              <span class="card-title">總支出</span>
+              <span class="material-icons-round card-icon expense">arrow_downward</span>
+            </div>
+            <div class="card-value expense-color" id="total-expense">$0</div>
+            <div class="card-footer">
+              <span class="footer-label">消費額度</span>
+            </div>
+          </div>
+        </section>
+        
+        <!-- Voice Console Card -->
+        <section class="glass-card voice-console-card">
+          <h2 class="section-title">智能語音記帳控制台</h2>
+          <p class="section-subtitle">點擊麥克風按鈕說話，系統將自動解析金額、類別、時間與商家</p>
+          
+          <div class="mic-container">
+            <button id="mic-btn" class="mic-button">
+              <span class="material-icons-round mic-icon">mic</span>
+              <div class="mic-pulse-ring one"></div>
+              <div class="mic-pulse-ring two"></div>
+            </button>
+            <div id="mic-status" class="mic-status-text">點選按鈕開始錄音</div>
+          </div>
+          
+          <!-- Speech output text box -->
+          <div class="transcript-box">
+            <div class="box-header">
+              <span class="box-title">即時語音辨識</span>
+              <span class="material-icons-round box-icon">text_fields</span>
+            </div>
+            <div id="transcript-text" class="transcript-placeholder">您說的話將在此即時顯示...</div>
+          </div>
+          
+          <!-- Hints -->
+          <div class="speech-hints">
+            <span class="hint-title">您可以試著說：</span>
+            <div class="hint-tags">
+              <button class="hint-tag" onclick="setInputText('今天中午去全聯刷信用卡買鮮奶和麵包花了250元')">"今天中午去全聯刷信用卡買鮮奶和麵包花了250元"</button>
+              <button class="hint-tag" onclick="setInputText('昨天去中油用中油Pay加滿油花了800塊')">"昨天去中油用中油Pay加滿油花了800塊"</button>
+              <button class="hint-tag" onclick="setInputText('剛剛去7-11買大杯冰拿鐵花了45元')">"剛剛去7-11買大杯冰拿鐵花了45元"</button>
+              <button class="hint-tag" onclick="setInputText('今天收到薪水五萬元')">"今天收到薪水五萬元"</button>
+            </div>
+          </div>
+          
+          <!-- Text fallback input form -->
+          <div class="text-input-fallback">
+            <div class="divider">
+              <span>或手動輸入口語</span>
+            </div>
+            <div class="fallback-input-row">
+              <input type="text" id="manual-text-input" placeholder="例如：昨天去吃肯德基花250元">
+              <button id="parse-text-btn" class="btn btn-primary">解析並記帳</button>
+            </div>
+          </div>
+        </section>
+        
+      </div>
+      
+      <!-- Right Column: Pie Chart and Transaction History -->
+      <div class="grid-right">
+        
+        <!-- Chart Analysis Card -->
+        <section class="glass-card chart-card">
+          <div class="card-title-row">
+            <h2 class="section-title">支出統計分析</h2>
+            <span class="material-icons-round section-icon">pie_chart</span>
+          </div>
+          <div class="chart-content">
+            <div class="chart-visual">
+              <svg id="pie-chart-svg" viewBox="0 0 200 200">
+                <circle cx="100" cy="100" r="70" class="chart-background-circle"></circle>
+                <!-- Dynamic SVG Path elements go here -->
+              </svg>
+              <div class="chart-center-text">
+                <span class="center-label">總支出</span>
+                <span class="center-value" id="chart-total-value">$0</span>
+              </div>
+            </div>
+            <div class="chart-legend" id="chart-legend-container">
+              <!-- Legends will be generated dynamically -->
+            </div>
+          </div>
+        </section>
+        
+        <!-- Transaction List Card -->
+        <section class="glass-card ledger-card">
+          <div class="card-title-row">
+            <h2 class="section-title">今日記帳明細列表</h2>
+            <span class="material-icons-round section-icon">receipt_long</span>
+          </div>
+          <div class="ledger-table-container">
+            <table class="ledger-table">
+              <thead>
+                <tr>
+                  <th>類別 / 日期</th>
+                  <th>描述</th>
+                  <th>付款方式</th>
+                  <th>金額</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="transaction-list-body">
+                <!-- Dynamically populated rows -->
+              </tbody>
+            </table>
+            <div id="no-records-placeholder" class="no-records-container">
+              <span class="material-icons-round placeholder-icon">receipt</span>
+              <p class="placeholder-text">目前沒有記帳紀錄</p>
+              <p class="placeholder-subtext">請使用語音輸入或下方手動欄位開始記帳</p>
+            </div>
+          </div>
+        </section>
+        
+      </div>
+      
+    </main>
+  </div>
+  
+  <!-- JavaScript Files -->
+  <script src="/static/app.js"></script>
+</body>
+</html>
