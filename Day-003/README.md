@@ -19,13 +19,22 @@
 
 ## 🚀 Live Demo
 
+### 🌐 Web App 互動操作展示 (Web App Walkthrough)
+
+下面是 Web 版本的實際操作展示（使用 Web Speech API 或手動輸入口語語句自動解析並記帳）：
+
+![Voice Finance Live Demo](./demo.webp)
+
+*圖：Web 版記帳完成後的最終儀表板與支出分析圓餅圖統計*
+![Voice Finance Final Dashboard State](./screenshot.png)
+
 > 🔗 **[📱 線上展示 (Web 版)](https://voice-finance-demo.web.app)** *(部署中)*
 >
 > 🔗 **[📦 下載 APK (Android)](https://github.com/asia17242/Ai-Study/releases/tag/day003-v1.0)** *(即將推出)*
 
 | 平台 | 狀態 |
 |------|------|
-| 🌐 Web | 🚧 部署中 |
+| 🌐 Web | 🟢 已完成測試與錄影 |
 | 🤖 Android | 🚧 開發中 |
 | 🍎 iOS | 🚧 開發中 |
 | 🪟 Windows | 🚧 開發中 |
