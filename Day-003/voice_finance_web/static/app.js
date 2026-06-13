@@ -15,7 +15,6 @@ const categoryColors = {
   '交通出行': '#54a0ff',
   '購物': '#1dd1a1',
   '日常用品': '#1dd1a1',
-  '日常用品': '#1dd1a1',
   '娛樂': '#9b5de5',
   '娛樂消費': '#9b5de5',
   '醫療': '#ee5253',
@@ -412,7 +411,7 @@ function renderCategoryPieChart(totalExpense) {
     // Radius is 70, center is (100, 100). Circumference = 2 * Math.PI * 70 = 439.82
     const circumference = 439.82;
     const strokeLength = percentage * circumference;
-    const strokeOffset = circumference - accumulatedAngle + (circumference * 0.25); // shift 90 deg back
+    const strokeOffset = -accumulatedAngle;
     
     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     circle.setAttribute('cx', '100');
@@ -451,14 +450,8 @@ function renderCategoryPieChart(totalExpense) {
 function getFormattedDate(offsetDays) {
   const d = new Date();
   d.setDate(d.getDate() - offsetDays);
-  return `${d.getFullYear()}-${(d.getMonth()+1).toString().padLeft(2, '0')}-${d.getDate().toString().padLeft(2, '0')}`;
+  return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
 }
-
-String.prototype.padLeft = function(size, char) {
-  let s = this;
-  while (s.length < size) s = char + s;
-  return s;
-};
 
 function getRelativeDateLabel(dateStr) {
   const todayStr = getFormattedDate(0);
