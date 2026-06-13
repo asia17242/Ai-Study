@@ -111,9 +111,15 @@ def mock_parse(text: str, current_date: str) -> dict:
         }
 
     amount = 100
-    match = re.search(r'\d+', text)
-    if match:
-        amount = float(match.group())
+    currency_match = re.search(r'(\d+)\s*(萬|億)?\s*(元|塊)', text)
+    if currency_match:
+        base = float(currency_match.group(1))
+        multiplier = currency_match.group(2)
+        if multiplier == '萬':
+            base *= 10000
+        elif multiplier == '億':
+            base *= 100000000
+        amount = base
     else:
         if '一百二十' in text:
             amount = 120.0
@@ -125,6 +131,10 @@ def mock_parse(text: str, current_date: str) -> dict:
             amount = 45.0
         elif '五萬' in text:
             amount = 50000.0
+        elif '三萬' in text:
+            amount = 30000.0
+        elif '一萬' in text:
+            amount = 10000.0
 
     tx_type = "expense"
     category = "其他"
@@ -212,11 +222,22 @@ async def parse_voice(input: VoiceInput):
     system_instruction = (
         "你是一個專業的財務記帳分析師，專門負責將口語或語音文字轉換為結構化記帳 JSON。\n"
         f"當前系統時間基準為（current_date）：{input.current_date}。\n"
-        "請精確解析出交易金額、類別、備註、收支類型、交易日期、商家名稱、付款方式，並提取具體商品項目放入 items 陣列。\n"
-        "1. 台灣常見商家：如全聯、中油、大買家、家樂福、7-11、全家、康是美等，請標註於 merchant 欄位。\n"
-        "2. 付款方式 (payment_method)：必須精準歸類為 '現金'、'信用卡' 或 '電子支付' 之一（街口支付, Line Pay, 中油Pay, 悠遊卡等皆屬 '電子支付'）。\n"
-        "3. 日期 (date)：若提及「昨天」、「前天」、「大前天」，請用系統時間基準扣除對應天數算得具體日期。\n"
-        "4. 商品細項 (items)：若提及購買了多個具體物件（如鮮奶和麵包），請拆分為字串陣列放入 items 欄位，例如 ['鮮奶', '麵包']。若無具體商品，則傳回空陣列 []。\n"
+        "請精確解析出交易金額、類別、備註、收支類型、交易日期、商家名稱、付款方式，並提取具體商品項目放入 items 陣列。\n\n"
+        "=== 金額萃取嚴格規則（Taiwan NER）===\n"
+        "1. 貨幣錨點規則：金額 amount 必須提取緊鄰於「元」或「塊」之前的數字。\n"
+        "   例：「電話支出1500元」→ amount: 1500。「花了800塊」→ amount: 800。\n"
+        "2. 上下文排除規則：強制忽略緊接於日期/數量修飾詞之後的數字，包含但不限於：\n"
+        "   「日」、「號」、「個」、「杯」、「次」、「件」、「歲」、「月」、「年」。\n"
+        "   例：「每個月5日固定支出1500元」→ amount: 1500（絕不取 5）。\n"
+        "3. 萬/億轉換規則：若貨幣字串含「萬」或「億」，必須先做數學乘積再輸出。\n"
+        "   例：「100萬元」→ amount: 100 * 10000 = 1000000。\n"
+        "   「5億」→ amount: 5 * 100000000 = 500000000。\n"
+        "4. 若語句中完全沒有貨幣相關數字（無元/塊/萬/億），amount 設為 0。\n\n"
+        "=== 其他欄位規則 ===\n"
+        "5. 台灣常見商家：如全聯、中油、大買家、家樂福、7-11、全家、康是美等，請標註於 merchant 欄位。\n"
+        "6. 付款方式 (payment_method)：必須精準歸類為 '現金'、'信用卡' 或 '電子支付' 之一（街口支付, Line Pay, 中油Pay, 悠遊卡等皆屬 '電子支付'）。\n"
+        "7. 日期 (date)：若提及「昨天」、「前天」、「大前天」，請用系統時間基準扣除對應天數算得具體日期。\n"
+        "8. 商品細項 (items)：若提及購買了多個具體物件（如鮮奶和麵包），請拆分為字串陣列放入 items 欄位，例如 ['鮮奶', '麵包']。若無具體商品，則傳回空陣列 []。\n\n"
         "回傳格式必須為符合以下 Pydantic 欄位定義的 JSON。\n"
         "金額(amount)必須為數字類型，收支類型(type)必須是 'expense' 或 'income'。"
     )
