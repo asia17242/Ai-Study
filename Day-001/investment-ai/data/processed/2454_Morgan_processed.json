@@ -1,0 +1,21 @@
+{
+  "ticker": "2454",
+  "company": "",
+  "broker": "Morgan Stanley",
+  "report_date": "2026-06-12",
+  "rating_raw": "HOLD",
+  "rating_standard": "HOLD",
+  "target_price": 1200.0,
+  "currency": "TWD",
+  "bull_points": [
+    "Bull Points:\n- Edge AI integration in mobile devices.\n- Market share gains in flagship segment.\nBear Points:\n- Competition from Qualcomm.\n- Macro uncertainty weighing on smartphone sales."
+  ],
+  "bear_points": [
+    "Bear Points:\n- Competition from Qualcomm.\n- Macro uncertainty weighing on smartphone sales."
+  ],
+  "summary": "MediaTek (2454) Investment Research Report Broker: Morgan Stanley Date: 2026-06-12 Rating: HOLD Target Price: NT$ 1200 Summary: MediaTek faces mixed demand in the smartphone market. Bull Points: - Edg",
+  "file_name": "2454_Morgan.pdf",
+  "file_hash": "cba5f4bdaa422e1942604a6334ecf81821eb45e38d2039e3cea1c19f7e41f3fa",
+  "pages": 1,
+  "financial_metrics": []
+}

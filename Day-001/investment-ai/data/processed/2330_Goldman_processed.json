@@ -1,0 +1,21 @@
+{
+  "ticker": "2330",
+  "company": "Strong AI demand and Co",
+  "broker": "Goldman Sachs",
+  "report_date": "2026-06-12",
+  "rating_raw": "BUY",
+  "rating_standard": "BUY",
+  "target_price": 1500.0,
+  "currency": "TWD",
+  "bull_points": [
+    "Bull Points:\n- Strong AI demand and CoWoS expansion.\n- Advanced nodes (3nm, 2nm) leadership.\nBear Points:\n- Geopolitical risk remains a concern.\n- Higher CapEx pressure."
+  ],
+  "bear_points": [
+    "Bear Points:\n- Geopolitical risk remains a concern.\n- Higher CapEx pressure."
+  ],
+  "summary": "TSMC (2330) Investment Research Report Broker: Goldman Sachs Date: 2026-06-12 Rating: BUY Target Price: NT$ 1500 Summary: TSMC continues to see strong demand from AI applications. Bull Points: - Stron",
+  "file_name": "2330_Goldman.pdf",
+  "file_hash": "9db30ce4a11dad7fcfb8e43d53523343ba0ece0c3002900fec2d134ac5a577bf",
+  "pages": 1,
+  "financial_metrics": []
+}

@@ -1,0 +1,21 @@
+{
+  "ticker": "2330",
+  "company": "Taiwan Semiconductor",
+  "broker": "Citi",
+  "report_date": "2026-06-12",
+  "rating_raw": "BUY",
+  "rating_standard": "BUY",
+  "target_price": 1520.0,
+  "currency": "TWD",
+  "bull_points": [
+    "Bull Points:\n- AI demand accelerating.\n- Market share gains in advanced nodes.\nBear Points:\n- Macro uncertainty."
+  ],
+  "bear_points": [
+    "Bear Points:\n- Macro uncertainty."
+  ],
+  "summary": "Taiwan Semiconductor (2330) Update Broker: Citi Date: 2026-06-12 Rating: BUY Target Price: NT$ 1520 Summary: We raise our target price on TSMC given solid N3 execution. Bull Points: - AI demand accele",
+  "file_name": "2330_Citi.pdf",
+  "file_hash": "04cade67cd23529598bc6eee8a3cb8a4636dd597510d40e464919eeeefea47f6",
+  "pages": 1,
+  "financial_metrics": []
+}

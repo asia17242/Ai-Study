@@ -1,0 +1,170 @@
+# UI Translations for Investment Research Intelligence Platform
+
+TRANSLATIONS = {
+    "繁體中文": {
+        "nav_title": "導覽選單",
+        "nav_dashboard": "數據儀表板",
+        "nav_analysis": "個股共識分析",
+        "nav_report": "AI 投資研究報告",
+        "nav_chat": "AI 智慧問答",
+        
+        "sidebar_info_title": "系統提示",
+        "sidebar_info_desc": "請將個股研究報告 PDF 放入 `data/raw_pdfs/` 資料夾，並在此平台進行處理與分析。",
+        
+        # Dashboard Page
+        "dash_title": "📊 投資研究智慧平台",
+        "dash_subtitle": "市場券商共識一目了然",
+        "dash_queue": "待處理 PDF 數量",
+        "dash_queue_desc": "等待匯入中",
+        "dash_processed": "已處理報告數",
+        "dash_processed_desc": "資料庫中有效報告",
+        "dash_tracked": "追蹤個股總數",
+        "dash_tracked_desc": "不重複股票代號",
+        "dash_btn_scan": "🔄 掃描並處理新 PDF 報告",
+        "dash_scanning": "正在解析 PDF 報告，請稍候...",
+        "dash_scan_success": "成功處理 {} 份新報告！",
+        "dash_scan_no_new": "沒有偵測到新的 PDF 檔案",
+        "dash_no_data": "目前尚無已處理的報告。請在 data/raw_pdfs/ 放入 PDF 後點擊上方按鈕進行掃描。",
+        "dash_select_stock": "選擇股票",
+        "dash_no_stocks": "處理資料中未找到任何股票代號。",
+        
+        "card_consensus": "券商共識評等",
+        "card_consensus_desc": "基於各券商評等分佈",
+        "card_avg_target": "平均目標價",
+        "card_avg_target_range": "價格區間: {} - {}",
+        "card_sentiment": "看多情緒值",
+        "card_sentiment_desc": "看空情緒值: {}%",
+        "card_reports": "已分析報告數",
+        "card_reports_desc": "券商覆蓋總數",
+        
+        "section_rating_dist": "券商評等分佈",
+        "section_sentiment_breakdown": "市場情緒拆解",
+        "section_bull_bear": "多空核心主題分析",
+        "section_bull_themes": "🔥 看多主題 (Bull Themes)",
+        "section_bear_themes": "⚠️ 看空主題 (Bear Themes)",
+        "section_broker_comp": "券商目標價對比",
+        "section_raw_summary": "📋 原始抽取資料摘要",
+        
+        "no_bull_themes": "未辨識出顯著看多主題",
+        "no_bear_themes": "未辨識出顯著看空主題",
+        
+        # Analysis Page
+        "anal_broker": "券商",
+        "anal_rating": "評等",
+        "anal_target": "目標價",
+        "anal_date": "報告日期",
+        "anal_bull_arguments": "✅ 看多論點摘要",
+        "anal_bear_arguments": "⚠️ 看空/風險論點摘要",
+        "anal_dist_title": "目標價分佈直方圖",
+        "anal_dist_avg": "平均值",
+        "anal_dist_stats": "- **價格區間**: {min_p:,.0f} - {max_p:,.0f}\n- **平均目標價**: {avg_p:,.0f}\n- **中位數目標價**: {med_p:,.0f}",
+        "anal_trend_title": "目標價歷史走勢圖",
+        "anal_trend_stats": "- **升評/調高目標價次數**: {up}\n- **降評/調低目標價次數**: {down}\n- **總計變動次數**: {total}",
+        
+        # Report Page
+        "rep_download_btn": "📥 下載完整 Markdown 報告",
+        "rep_download_success": "報告已成功儲存至 {}",
+        
+        # Chat Page
+        "chat_welcome": "您好！我是您的 AI 投資助手。我可以幫您分析已匯入的券商研究報告。您可以試著問我：\n\n- 2330 的市場券商共識是什麼？\n- 誰對 2330 最樂觀（目標價最高）？\n- 幫我比較聯發科的多空論點\n- 顯示目標價的歷史趨勢",
+        "chat_placeholder": "輸入關於個股、券商共識或多空論點的問題...",
+        "chat_analyzing": "分析數據中...",
+        "chat_no_data": "找不到與您問題相關的數據。請試著詢問特定股票代號（如 2330）。",
+        "chat_most_bullish": "對於 **{company}** 最樂觀的券商是 **{broker}**，給予目標價 **{price:,.0f}**，評等為 **{rating}**。",
+        "chat_no_rating": "目前無評等數據可用。",
+        "chat_most_bearish": "對於 **{company}** 最保守的券商是 **{broker}**，給予目標價 **{price:,.0f}**，評等為 **{rating}**。",
+        "chat_bull_header": "### 看多論點 (Bull Arguments)\n",
+        "chat_bear_header": "\n### 看空/風險論點 (Bear Arguments)\n",
+        "chat_no_bull_bear": "報告中未發現詳細的多空論點。",
+        "chat_trend_header": "### 目標價變動趨勢\n- **調升**: {up}\n- **調降**: {down}\n- **總變動次數**: {total}\n\n#### 歷史價格軌跡 (最新 5 筆)\n",
+        "chat_compare_header": "### 比較分析: {t1} vs {t2}\n\n**{t1}**:\n- 平均目標價: {avg1:,.0f}\n- 報告覆蓋數: {count1}\n\n**{t2}**:\n- 平均目標價: {avg2:,.0f}\n- 報告覆蓋數: {count2}\n",
+        "chat_broker_list": "覆蓋此個股的券商名單：\n",
+        
+        "rating_buy": "買進 (BUY)",
+        "rating_hold": "中立 (HOLD)",
+        "rating_sell": "賣出 (SELL)",
+    },
+    "English": {
+        "nav_title": "Navigation",
+        "nav_dashboard": "Dashboard",
+        "nav_analysis": "Stock Analysis",
+        "nav_report": "AI Report",
+        "nav_chat": "AI Chat",
+        
+        "sidebar_info_title": "System Tips",
+        "sidebar_info_desc": "Please place stock research PDFs into the `data/raw_pdfs/` folder, then process and analyze them here.",
+        
+        # Dashboard Page
+        "dash_title": "📊 Investment Research Dashboard",
+        "dash_subtitle": "Consensus Intelligence at a Glance",
+        "dash_queue": "PDFs in Queue",
+        "dash_queue_desc": "Awaiting ingestion",
+        "dash_processed": "Processed Reports",
+        "dash_processed_desc": "Active in database",
+        "dash_tracked": "Stocks Tracked",
+        "dash_tracked_desc": "Unique tickers",
+        "dash_btn_scan": "🔄 Scan & Process New PDFs",
+        "dash_scanning": "Processing PDFs, please wait...",
+        "dash_scan_success": "Processed {} new report(s) successfully!",
+        "dash_scan_no_new": "No new PDFs detected in folder.",
+        "dash_no_data": "No processed reports yet. Add PDFs to data/raw_pdfs/ and click the button above.",
+        "dash_select_stock": "Select Stock",
+        "dash_no_stocks": "No stocks found in processed data.",
+        
+        "card_consensus": "Consensus Rating",
+        "card_consensus_desc": "Based on rating distribution",
+        "card_avg_target": "Avg Target Price",
+        "card_avg_target_range": "Range: {} - {}",
+        "card_sentiment": "Bullish Sentiment",
+        "card_sentiment_desc": "Bearish Sentiment: {}%",
+        "card_reports": "Reports Analyzed",
+        "card_reports_desc": "Total broker coverage",
+        
+        "section_rating_dist": "Rating Distribution",
+        "section_sentiment_breakdown": "Sentiment Breakdown",
+        "section_bull_bear": "Bull vs Bear Themes Analysis",
+        "section_bull_themes": "🔥 Bull Themes",
+        "section_bear_themes": "⚠️ Bear Themes",
+        "section_broker_comp": "Target Price by Broker",
+        "section_raw_summary": "📋 Raw Data Summary",
+        
+        "no_bull_themes": "No bull themes identified",
+        "no_bear_themes": "No bear themes identified",
+        
+        # Analysis Page
+        "anal_broker": "Broker",
+        "anal_rating": "Rating",
+        "anal_target": "Target Price",
+        "anal_date": "Date",
+        "anal_bull_arguments": "✅ Bullish Arguments",
+        "anal_bear_arguments": "⚠️ Bearish Arguments",
+        "anal_dist_title": "Target Price Distribution",
+        "anal_dist_avg": "Average",
+        "anal_dist_stats": "- **Range**: {min_p:,.0f} - {max_p:,.0f}\n- **Average**: {avg_p:,.0f}\n- **Median**: {med_p:,.0f}",
+        "anal_trend_title": "Target Price Trend",
+        "anal_trend_stats": "- **Upgrades**: {up}\n- **Downgrades**: {down}\n- **Total Changes**: {total}",
+        
+        # Report Page
+        "rep_download_btn": "📥 Download Full Markdown Report",
+        "rep_download_success": "Report saved successfully to {}",
+        
+        # Chat Page
+        "chat_welcome": "Hello! I am your AI Investment Assistant. I can help answer questions about broker reports. Try asking:\n\n- What is the market consensus for 2330?\n- Who is most bullish on 2330?\n- Compare bull vs bear arguments for MediaTek\n- Show me target price trends",
+        "chat_placeholder": "Ask about stocks, consensus, or brokers...",
+        "chat_analyzing": "Analyzing data...",
+        "chat_no_data": "I couldn't find relevant data for your question. Please try asking about a specific stock ticker (e.g. 2330).",
+        "chat_most_bullish": "The most bullish broker on **{company}** is **{broker}** with a target price of **{price:,.0f}** and a **{rating}** rating.",
+        "chat_no_rating": "No rating data available.",
+        "chat_most_bearish": "The most conservative broker on **{company}** is **{broker}** with a target price of **{price:,.0f}** and a **{rating}** rating.",
+        "chat_bull_header": "### Bull Arguments\n",
+        "chat_bear_header": "\n### Bear Arguments\n",
+        "chat_no_bull_bear": "No detailed bull/bear arguments found in the reports.",
+        "chat_trend_header": "### Target Price Trends\n- **Upgrades**: {up}\n- **Downgrades**: {down}\n- **Total Changes**: {total}\n\n#### Price History (Latest 5 changes)\n",
+        "chat_compare_header": "### Comparison: {t1} vs {t2}\n\n**{t1}**:\n- Avg Target: {avg1:,.0f}\n- Reports: {count1}\n\n**{t2}**:\n- Avg Target: {avg2:,.0f}\n- Reports: {count2}\n",
+        "chat_broker_list": "Brokers covering this stock:\n",
+        
+        "rating_buy": "BUY",
+        "rating_hold": "HOLD",
+        "rating_sell": "SELL",
+    }
+}
