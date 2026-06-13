@@ -1,0 +1,34 @@
+name: voice_finance
+description: Voice-powered finance tracker with Gemini AI
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_bloc: ^8.1.6
+  responsive_framework: ^1.5.1
+  equatable: ^2.0.5
+  dartz: ^0.10.1
+  get_it: ^7.6.4
+  http: ^1.2.0
+  speech_to_text: ^6.3.0
+  intl: ^0.18.1
+  fl_chart: ^0.65.0
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  flutter_dotenv: ^5.1.0
+  google_generative_ai: ^0.2.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - .env
