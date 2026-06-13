@@ -7,6 +7,7 @@ gemini = GeminiService()
 
 class VoiceInput(BaseModel):
     text: str
+    current_date: str = "2026-06-13"
 
 class TransactionResponse(BaseModel):
     amount: float
@@ -17,7 +18,7 @@ class TransactionResponse(BaseModel):
 @app.post("/api/parse", response_model=TransactionResponse)
 async def parse_voice(input: VoiceInput):
     try:
-        result = gemini.parse_transaction(input.text)
+        result = gemini.parse_transaction(input.text, input.current_date)
         return TransactionResponse(**result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

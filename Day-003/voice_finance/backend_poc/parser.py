@@ -12,10 +12,10 @@ load_dotenv()
 # Define the structured output schema using Pydantic
 class TransactionSchema(BaseModel):
     date: str = Field(
-        description="交易日期，格式為 YYYY-MM-DD。若口語提及「昨天」、「前天」等，請以當前時間基準 2026-06-13 計算得出對應日期。"
+        description="交易日期，格式為 YYYY-MM-DD。若口語提及「昨天」、「前天」等，請以系統指令中給出的基準日期（current_date）計算得出對應日期。"
     )
     type: str = Field(
-        description="交易類型，必須為 'expense' (支出) 或 'income' (收入)。"
+        description="交易類型，必須為 'expense' (支出) 或 'income' (收入)."
     )
     amount: int = Field(
         description="交易金額，必須為整數。"
@@ -42,7 +42,6 @@ class TransactionSchema(BaseModel):
 class TransactionParser:
     def __init__(self):
         # The new SDK automatically picks up GEMINI_API_KEY from environment variables.
-        # Alternatively, it can be passed via genai.Client(api_key=...)
         api_key = os.getenv("GEMINI_API_KEY")
         if not api_key:
             print("警告: 未在環境變數中檢測到 GEMINI_API_KEY。將嘗試使用 SDK 預設載入。")
@@ -51,25 +50,25 @@ class TransactionParser:
             self.client = genai.Client(api_key=api_key)
             
         self.model_name = "gemini-2.5-flash"
-        self.system_instruction = (
+
+    def parse(self, text: str, current_date: str = "2026-06-13") -> str:
+        """
+        Parses a Taiwanese oral statements into a structured JSON string.
+        """
+        dynamic_system_instruction = (
             "你是一個專業的財務記帳分析師，專門負責將語音或口語轉換為結構化記帳 JSON。\n"
-            "當前的日期時間基準設定為：2026年6月13日 (星期六)。\n"
+            f"當前的日期時間基準（current_date）設定為：{current_date}。\n"
             "你必須能夠完美識別與分析台灣當地的口語記帳情境，特別是以下特徵：\n"
             "1. 台灣常見商家/品牌：如全聯、中油、大買家、家樂福、美廉社、7-11、全家、康是美等。\n"
             "2. 台灣常見電子支付與行動支付：如中油Pay、Line Pay、街口支付、悠遊付、Pi拍錢包等，這些皆應歸類為 '電子支付'。\n"
             "3. 台灣在地口語詞彙：如「加滿油」、「花了800塊」、「吃便當」、「買飲料」等。"
         )
-
-    def parse(self, text: str) -> str:
-        """
-        Parses a Taiwanese oral statements into a structured JSON string.
-        """
         try:
             response = self.client.models.generate_content(
                 model=self.model_name,
                 contents=text,
                 config=types.GenerateContentConfig(
-                    system_instruction=self.system_instruction,
+                    system_instruction=dynamic_system_instruction,
                     response_mime_type="application/json",
                     response_schema=TransactionSchema,
                     temperature=0.1,  # Low temperature for highly deterministic output

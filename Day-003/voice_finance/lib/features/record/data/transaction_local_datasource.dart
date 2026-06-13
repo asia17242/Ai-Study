@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'transaction_model.dart';
 
 class TransactionLocalDataSource {
@@ -7,6 +7,7 @@ class TransactionLocalDataSource {
   late Box<String> _box;
 
   Future<void> init() async {
+    await Hive.initFlutter();
     _box = await Hive.openBox<String>(_boxName);
   }
 

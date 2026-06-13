@@ -10,11 +10,17 @@ class ApiService {
   Future<Map<String, dynamic>> parseVoice(String text) async {
     final url = Uri.parse('${AppConstants.baseUrl}/api/parse');
     
+    final now = DateTime.now();
+    final formattedDate = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+
     try {
       final response = await client.post(
         url,
         headers: {'Content-Type': 'application/json; charset=UTF-8'},
-        body: jsonEncode({'text': text}),
+        body: jsonEncode({
+          'text': text,
+          'current_date': formattedDate,
+        }),
       );
 
       if (response.statusCode == 200) {

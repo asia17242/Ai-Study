@@ -22,8 +22,12 @@ class GeminiService:
             system_instruction=SYSTEM_PROMPT,
         )
 
-    def parse_transaction(self, text: str) -> dict:
-        response = self.model.generate_content(text)
+    def parse_transaction(self, text: str, current_date: str = "2026-06-13") -> dict:
+        prompt = (
+            f"Current baseline date (current_date): {current_date}\n"
+            f"Analyze the following text and extract transaction details: {text}"
+        )
+        response = self.model.generate_content(prompt)
         raw = response.text.strip()
         raw = raw.removeprefix("```json").removeprefix("```").removesuffix("```")
         return json.loads(raw)
