@@ -335,6 +335,17 @@ function updateDashboard() {
       const dateDisplay = getRelativeDateLabel(t.date);
       const isExpense = t.type === 'expense';
       
+      // Build options for category select menu
+      const standardCategories = ['餐飲食品', '交通出行', '日常用品', '娛樂消費', '醫療保健', '教育', '居家', '薪資', '獎金', '投資', '其他'];
+      const currentCat = t.category || '其他';
+      const displayCategories = standardCategories.includes(currentCat) ? standardCategories : [currentCat, ...standardCategories];
+      
+      let categoryOptionsHTML = '';
+      displayCategories.forEach(cat => {
+        const selected = cat === currentCat ? 'selected' : '';
+        categoryOptionsHTML += `<option value="${cat}" ${selected}>${cat}</option>`;
+      });
+      
       tr.innerHTML = `
         <td>
           <div class="cat-column">
@@ -342,8 +353,13 @@ function updateDashboard() {
               <span class="material-icons-round">${icon}</span>
             </div>
             <div class="cat-info">
-              <span class="cat-name">${t.category}</span>
-              <span class="tx-date">${dateDisplay}</span>
+              <select class="cat-select" onchange="updateTransactionCategory('${t.id}', this.value)">
+                ${categoryOptionsHTML}
+              </select>
+              <div class="tx-date-wrapper">
+                <span class="tx-date-label" onclick="triggerDatePicker('${t.id}')">${dateDisplay}</span>
+                <input type="date" id="date-picker-${t.id}" class="tx-date-hidden-input" value="${t.date}" onchange="updateTransactionDate('${t.id}', this.value)">
+              </div>
             </div>
           </div>
         </td>
@@ -463,3 +479,36 @@ function getRelativeDateLabel(dateStr) {
   if (dateStr === beforeYesterdayStr) return '前天';
   return dateStr;
 }
+
+// Update transaction category from dropdown selection
+window.updateTransactionCategory = function(id, newCategory) {
+  const tx = transactions.find(t => t.id === id);
+  if (tx) {
+    tx.category = newCategory;
+    saveTransactionsToStorage();
+    updateDashboard();
+  }
+};
+
+// Programmatically trigger native date picker
+window.triggerDatePicker = function(id) {
+  const picker = document.getElementById(`date-picker-${id}`);
+  if (picker) {
+    if (typeof picker.showPicker === 'function') {
+      picker.showPicker();
+    } else {
+      picker.click();
+    }
+  }
+};
+
+// Update transaction date from date picker calendar selection
+window.updateTransactionDate = function(id, newDate) {
+  if (!newDate) return;
+  const tx = transactions.find(t => t.id === id);
+  if (tx) {
+    tx.date = newDate;
+    saveTransactionsToStorage();
+    updateDashboard();
+  }
+};

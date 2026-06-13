@@ -764,3 +764,92 @@ input[type="text"]:focus {
   font-size: 12px;
   color: var(--text-muted);
 }
+
+/* ==========================================================================
+   Interactive Ledger Category Dropdown & Date Picker
+   ========================================================================== */
+.cat-select {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: var(--font-family-body);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  padding-right: 18px;
+  /* Premium drop arrow icon in HSL secondary color */
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%238e9bb0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: 12px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  transition: color 0.2s ease, background-image 0.2s ease;
+}
+
+.cat-select:focus, .cat-select:hover {
+  color: var(--accent-cyan);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2300f0ff' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+}
+
+.cat-select option {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  font-family: var(--font-family-body);
+  font-size: 13px;
+}
+
+.tx-date-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.tx-date-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tx-date-label:hover {
+  background: rgba(0, 240, 255, 0.08);
+  border-color: rgba(0, 240, 255, 0.2);
+  color: var(--accent-cyan);
+}
+
+.tx-date-label::after {
+  content: 'edit_calendar';
+  font-family: 'Material Icons Round';
+  font-size: 11px;
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+}
+
+.tx-date-label:hover::after {
+  color: var(--accent-cyan);
+}
+
+.tx-date-hidden-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  border: none;
+  padding: 0;
+  margin: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
