@@ -306,7 +306,12 @@
         <section class="glass-card ledger-card">
           <div class="card-title-row">
             <h2 class="section-title" id="ledger-section-title">本月記帳明細列表</h2>
-            <span class="material-icons-round section-icon">receipt_long</span>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <button id="btn-export-csv" class="btn btn-outline" style="padding:5px 12px;font-size:11px;" title="匯出明細">
+                <span class="material-icons-round" style="font-size:14px;">file_download</span> 匯出明細
+              </button>
+              <span class="material-icons-round section-icon">receipt_long</span>
+            </div>
           </div>
           <div class="ledger-table-container">
             <table class="ledger-table">
@@ -369,22 +374,37 @@
           <button class="manual-type-tab" data-type="income" onclick="setManualType('income')">
             <span class="material-icons-round" style="font-size:16px;">trending_up</span> 收入
           </button>
+          <button class="manual-type-tab" data-type="transfer" onclick="setManualType('transfer')">
+            <span class="material-icons-round" style="font-size:16px;">swap_horiz</span> 轉帳
+          </button>
         </div>
         <div class="modal-field">
           <span class="modal-field-label">金額</span>
-          <input type="number" id="manual-amount" placeholder="請輸入金額" min="0" step="1" autofocus>
+          <input type="text" id="manual-amount" placeholder="請輸入金額" inputmode="numeric" autofocus oninput="formatAmountInput(this)">
         </div>
-        <div class="modal-field">
+        <div class="modal-field" id="manual-payment-field">
           <span class="modal-field-label">帳戶 / 工具</span>
           <select id="manual-payment"></select>
         </div>
-        <div class="modal-field">
-          <span class="modal-field-label">主類別</span>
-          <select id="manual-category"></select>
+        <div class="modal-field-row" id="manual-transfer-fields" style="display:none;">
+          <div class="modal-field">
+            <span class="modal-field-label">來源帳戶</span>
+            <select id="manual-from-account"></select>
+          </div>
+          <div class="modal-field">
+            <span class="modal-field-label">目的帳戶</span>
+            <select id="manual-to-account"></select>
+          </div>
         </div>
-        <div class="modal-field">
-          <span class="modal-field-label">子項目</span>
-          <select id="manual-sub-category"></select>
+        <div id="manual-category-fields">
+          <div class="modal-field">
+            <span class="modal-field-label">主類別</span>
+            <select id="manual-category"></select>
+          </div>
+          <div class="modal-field">
+            <span class="modal-field-label">子項目</span>
+            <select id="manual-sub-category"></select>
+          </div>
         </div>
         <div class="modal-field">
           <span class="modal-field-label">描述 / 備註（選填）</span>

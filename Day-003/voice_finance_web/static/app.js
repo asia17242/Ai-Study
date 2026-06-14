@@ -1464,7 +1464,7 @@ function renderModalForm(tx) {
       </div>
       <div class="modal-field">
         <span class="modal-field-label">金額</span>
-        <input type="number" id="modal-amount" value="${tx.amount}" min="0">
+        <input type="text" id="modal-amount" value="${tx.amount.toLocaleString()}" oninput="formatAmountInput(this)">
       </div>
     </div>
     <div class="modal-field" id="modal-sub-cat-field">
@@ -1546,7 +1546,7 @@ function saveModalChanges() {
   
   tx.category = document.getElementById('modal-category').value;
   tx.sub_category = document.getElementById('modal-sub-category').value || '其他';
-  tx.amount = parseInt(document.getElementById('modal-amount').value) || 0;
+  tx.amount = parseInt(document.getElementById('modal-amount').value.replace(/,/g, '')) || 0;
   tx.payment_method = document.getElementById('modal-payment').value;
   tx.merchant = document.getElementById('modal-merchant').value;
   tx.description = document.getElementById('modal-description').value;
@@ -1792,8 +1792,7 @@ let manualEntryType = 'expense';
 
 function openManualEntryModal() {
   manualEntryType = 'expense';
-  document.getElementById('manual-type-tabs').querySelectorAll('.manual-type-tab').forEach(t => t.classList.remove('active'));
-  document.querySelector('.manual-type-tab[data-type="expense"]').classList.add('active');
+  setManualTypeUI('expense');
 
   document.getElementById('manual-amount').value = '';
   document.getElementById('manual-description').value = '';
@@ -1802,11 +1801,23 @@ function openManualEntryModal() {
   renderSelectWithAdd('manual-category', 'categories', null, '餐飲食品', () => {
     updateManualSubCategory();
   });
+  renderAccountSelect('manual-from-account', '現金');
+  renderAccountSelect('manual-to-account', '');
 
   updateManualSubCategory();
+  showManualFields();
 
   document.getElementById('manual-entry-overlay').classList.add('active');
   setTimeout(() => document.getElementById('manual-amount').focus(), 100);
+}
+
+function renderAccountSelect(selectId, defaultVal) {
+  var sel = document.getElementById(selectId);
+  sel.innerHTML = '';
+  bankAccounts.forEach(function(a) {
+    var selAttr = a.name === defaultVal ? ' selected' : '';
+    sel.innerHTML += '<option value="' + escapeHtml(a.name) + '"' + selAttr + '>' + escapeHtml(a.name) + ' ($' + a.balance.toLocaleString() + ')</option>';
+  });
 }
 
 function closeManualEntryModal() {
@@ -1815,9 +1826,22 @@ function closeManualEntryModal() {
 
 window.setManualType = function(type) {
   manualEntryType = type;
-  document.getElementById('manual-type-tabs').querySelectorAll('.manual-type-tab').forEach(t => t.classList.remove('active'));
-  document.querySelector(`.manual-type-tab[data-type="${type}"]`).classList.add('active');
+  setManualTypeUI(type);
+  showManualFields();
 };
+
+function setManualTypeUI(type) {
+  document.getElementById('manual-type-tabs').querySelectorAll('.manual-type-tab').forEach(t => t.classList.remove('active'));
+  var tab = document.querySelector('.manual-type-tab[data-type="' + type + '"]');
+  if (tab) tab.classList.add('active');
+}
+
+function showManualFields() {
+  var isTransfer = manualEntryType === 'transfer';
+  document.getElementById('manual-payment-field').style.display = isTransfer ? 'none' : '';
+  document.getElementById('manual-transfer-fields').style.display = isTransfer ? '' : 'none';
+  document.getElementById('manual-category-fields').style.display = isTransfer ? 'none' : '';
+}
 
 window.updateManualSubCategory = function() {
   const catSelect = document.getElementById('manual-category');
@@ -1846,39 +1870,114 @@ window.updateManualSubCategory = function() {
 };
 
 function submitManualEntry() {
-  const amountVal = parseFloat(document.getElementById('manual-amount').value);
+  var rawVal = document.getElementById('manual-amount').value.replace(/,/g, '');
+  var amountVal = parseFloat(rawVal);
   if (!amountVal || amountVal <= 0) {
     triggerAnimeCustomQuote('主人～金額好像還沒填對喔！請確認一下再按確認記帳～🧐');
     return;
   }
 
-  const today = getFormattedDate(0);
-  const newTx = {
-    id: Date.now().toString(),
-    date: today,
-    type: manualEntryType,
-    amount: amountVal,
-    category: document.getElementById('manual-category').value || '其他',
-    sub_category: document.getElementById('manual-sub-category').value || '其他',
-    description: document.getElementById('manual-description').value.trim() || '手動記帳',
-    payment_method: document.getElementById('manual-payment').value || '現金',
-    merchant: '手動輸入',
-    transcript: `[手動記帳] ${document.getElementById('manual-description').value.trim() || '手動記帳'}`,
-    items: []
-  };
+  var today = getFormattedDate(0);
 
-  transactions.unshift(newTx);
-  syncAccountBalance(newTx.payment_method, newTx.amount, newTx.type);
-  saveTransactionsToStorage();
-  updateDashboard();
+  if (manualEntryType === 'transfer') {
+    var fromAcc = document.getElementById('manual-from-account').value;
+    var toAcc = document.getElementById('manual-to-account').value;
+    if (!fromAcc || !toAcc) {
+      triggerAnimeCustomQuote('主人～請選擇來源和目的帳戶才能轉帳喔！🧐');
+      return;
+    }
+    if (fromAcc === toAcc) {
+      triggerAnimeCustomQuote('主人～來源和目的帳戶不能一樣啦！😅');
+      return;
+    }
 
-  triggerAnimeCustomQuote(
-    animeAssistantQuotes.onManualEntry[
-      Math.floor(Math.random() * animeAssistantQuotes.onManualEntry.length)
-    ]
-  );
+    var fromObj = bankAccounts.find(function(a) { return a.name === fromAcc; });
+    if (fromObj && fromObj.balance < amountVal) {
+      triggerAnimeCustomQuote('主人～來源帳戶餘額不足，無法完成轉帳！💸');
+      return;
+    }
+
+    if (fromObj) { fromObj.balance -= amountVal; }
+    var toObj = bankAccounts.find(function(a) { return a.name === toAcc; });
+    if (toObj) { toObj.balance += amountVal; }
+    saveAccountsToStorage();
+    renderAccountsPanel();
+
+    transactions.unshift({
+      id: Date.now().toString(), date: today, type: 'transfer',
+      amount: amountVal, category: '其他', sub_category: '其他',
+      description: document.getElementById('manual-description').value.trim() || '轉帳',
+      payment_method: fromAcc + ' → ' + toAcc,
+      merchant: '轉帳', transcript: '[轉帳] ' + fromAcc + ' → ' + toAcc + ' $' + amountVal.toLocaleString(),
+      items: []
+    });
+    saveTransactionsToStorage();
+    updateDashboard();
+    triggerAnimeCustomQuote('轉帳成功！主人～資金已經安全送達目的帳戶囉！🔄');
+    
+    document.getElementById('manual-from-account').value = '';
+    document.getElementById('manual-to-account').value = '';
+  } else {
+    var newTx = {
+      id: Date.now().toString(), date: today, type: manualEntryType,
+      amount: amountVal,
+      category: document.getElementById('manual-category').value || '其他',
+      sub_category: document.getElementById('manual-sub-category').value || '其他',
+      description: document.getElementById('manual-description').value.trim() || '手動記帳',
+      payment_method: document.getElementById('manual-payment').value || '現金',
+      merchant: '手動輸入',
+      transcript: '[手動記帳] ' + (document.getElementById('manual-description').value.trim() || '手動記帳'),
+      items: []
+    };
+    transactions.unshift(newTx);
+    syncAccountBalance(newTx.payment_method, newTx.amount, newTx.type);
+    saveTransactionsToStorage();
+    updateDashboard();
+    triggerAnimeCustomQuote(animeAssistantQuotes.onManualEntry[Math.floor(Math.random() * animeAssistantQuotes.onManualEntry.length)]);
+  }
 
   closeManualEntryModal();
+}
+
+// ==========================================================================
+// Amount Input Comma Formatter
+// ==========================================================================
+window.formatAmountInput = function(input) {
+  var cursorPos = input.selectionStart;
+  var raw = input.value.replace(/,/g, '');
+  if (raw === '' || isNaN(raw)) { input.value = raw; return; }
+  var beforeLen = input.value.length;
+  input.value = parseInt(raw, 10).toLocaleString();
+  var diff = input.value.length - beforeLen;
+  input.selectionStart = input.selectionEnd = cursorPos + diff;
+};
+
+// ==========================================================================
+// CSV Export
+// ==========================================================================
+function exportCSV() {
+  var displayTx = getFilteredTransactions();
+  if (displayTx.length === 0) {
+    triggerAnimeCustomQuote('主人～目前沒有記帳紀錄可以匯出喔！先記幾筆再來匯出吧～📋');
+    return;
+  }
+  var header = '日期,類型,金額,類別,子分類,描述,帳戶/工具,商家\n';
+  var rows = displayTx.map(function(t) {
+    var sign = t.type === 'income' ? '+' : t.type === 'transfer' ? '±' : '-';
+    return [t.date, t.type, sign + t.amount, t.category, t.sub_category || '', t.description, t.payment_method || '', t.merchant || '']
+      .map(function(v) { return '"' + v + '"'; }).join(',');
+  }).join('\n');
+  var csv = '\uFEFF' + header + rows;
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'voice_finance_export_' + getFormattedDate(0) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  triggerAnimeCustomQuote('明細已匯出！主人可以隨時打開 CSV 檔案來分析財務喔～📊');
 }
 
 // ==========================================================================
