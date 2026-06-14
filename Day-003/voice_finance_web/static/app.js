@@ -9,6 +9,7 @@ let recognition = null;
 let activePeriod = 'month';
 let currentModalTxId = null;
 const MONTHLY_BUDGET = 10000;
+let pendingRecurringTx = null;
 
 // ==========================================================================
 // Anime Assistant Quote Engine
@@ -332,6 +333,13 @@ function bindUIEvents() {
     triggerAnimeQuote('onIdle');
   });
   
+  // Recurring setup form events
+  document.getElementById('recurring-end-type').addEventListener('change', (e) => {
+    document.getElementById('recurring-end-date-field').style.display = e.target.value === 'custom' ? '' : 'none';
+  });
+  document.getElementById('btn-confirm-recurring').addEventListener('click', confirmRecurringTransaction);
+  document.getElementById('btn-cancel-recurring').addEventListener('click', cancelRecurringTransaction);
+  
   // Modal events
   document.getElementById('modal-close-btn').addEventListener('click', closeTransactionModal);
   document.getElementById('modal-overlay').addEventListener('click', (e) => {
@@ -370,6 +378,27 @@ async function parseVoiceTransaction(text) {
     
     if (response.ok) {
       const data = await response.json();
+      
+      if (data.is_recurring) {
+        pendingRecurringTx = {
+          id: Date.now().toString(),
+          date: data.date || today,
+          type: data.type || 'expense',
+          amount: parseFloat(data.amount) || 0,
+          category: data.category || '其他',
+          description: data.description || text,
+          payment_method: data.payment_method || '現金',
+          merchant: data.merchant || '未知',
+          transcript: text,
+          items: data.items || [],
+          isRecurring: true,
+          dayOfPeriod: data.day_of_period,
+          recurringFrequency: data.recurring_frequency || 'monthly'
+        };
+        showRecurringSetup(data.day_of_period, data.recurring_frequency, today);
+        statusEl.innerHTML = '🔄 偵測到定期交易！請設定時間區間...';
+        return;
+      }
       
       // Add successful transaction to lists
       const newTx = {
@@ -456,6 +485,66 @@ function resetTranscript() {
   transcriptEl.contentEditable = 'false';
   hideTranscriptActions();
   document.getElementById('mic-status').innerText = '點選按鈕開始錄音';
+}
+
+// ==========================================================================
+// Recurring Transaction Setup
+// ==========================================================================
+function showRecurringSetup(dayOfPeriod, frequency, currentDate) {
+  document.getElementById('recurring-setup').style.display = 'block';
+  document.getElementById('transcript-actions').style.display = 'none';
+  
+  const startInput = document.getElementById('recurring-start-date');
+  startInput.value = currentDate.substring(0, 7);
+  
+  const freqDisplay = document.getElementById('recurring-frequency-display');
+  const day = dayOfPeriod || 1;
+  if (frequency === 'weekly') {
+    freqDisplay.value = '每週 ' + day;
+  } else {
+    freqDisplay.value = '每個月 ' + day + ' 日';
+  }
+  
+  document.getElementById('recurring-end-type').value = 'forever';
+  document.getElementById('recurring-end-date-field').style.display = 'none';
+}
+
+function hideRecurringSetup() {
+  document.getElementById('recurring-setup').style.display = 'none';
+  pendingRecurringTx = null;
+}
+
+function confirmRecurringTransaction() {
+  if (!pendingRecurringTx) return;
+  
+  const startDate = document.getElementById('recurring-start-date').value + '-01';
+  const endType = document.getElementById('recurring-end-type').value;
+  let endDate = null;
+  
+  if (endType === 'custom') {
+    endDate = document.getElementById('recurring-end-date').value + '-01';
+  }
+  
+  const tx = {
+    ...pendingRecurringTx,
+    date: startDate,
+    startDate: startDate,
+    endDate: endDate,
+    isRecurring: true
+  };
+  
+  transactions.unshift(tx);
+  saveTransactionsToStorage();
+  updateDashboard();
+  
+  document.getElementById('mic-status').innerHTML = `✅ 定期交易已建立！<b>$${tx.amount}</b> (${tx.category}) 每月${pendingRecurringTx.dayOfPeriod || 1}日`;
+  document.getElementById('manual-text-input').value = '';
+  hideRecurringSetup();
+}
+
+function cancelRecurringTransaction() {
+  document.getElementById('mic-status').innerText = '已取消定期交易設定';
+  hideRecurringSetup();
 }
 
 // ==========================================================================

@@ -128,6 +128,42 @@
             <button id="btn-cancel-reset" class="btn btn-danger">取消</button>
           </div>
           
+          <!-- Recurring Transaction Setup Form -->
+          <div class="recurring-setup" id="recurring-setup" style="display: none;">
+            <div class="recurring-header">
+              <span class="material-icons-round" style="font-size:20px; color:#FFD700;">repeat</span>
+              <span class="recurring-title">定期定額設定確認</span>
+            </div>
+            <p class="recurring-subtitle">🤖 主人，這是一筆定期支出項目，請確認它的時間區間：</p>
+            <div class="recurring-fields">
+              <div class="recurring-field">
+                <label class="recurring-label">開始月份</label>
+                <input type="month" id="recurring-start-date" class="recurring-input">
+              </div>
+              <div class="recurring-field">
+                <label class="recurring-label">執行頻率</label>
+                <input type="text" id="recurring-frequency-display" class="recurring-input" disabled>
+              </div>
+              <div class="recurring-field">
+                <label class="recurring-label">結束方式</label>
+                <select id="recurring-end-type" class="recurring-input recurring-select">
+                  <option value="forever">無限期 (Until Canceled)</option>
+                  <option value="custom">指定結束日期 (Pick End Date)</option>
+                </select>
+              </div>
+              <div class="recurring-field" id="recurring-end-date-field" style="display: none;">
+                <label class="recurring-label">結束月份</label>
+                <input type="month" id="recurring-end-date" class="recurring-input">
+              </div>
+            </div>
+            <div class="recurring-actions">
+              <button id="btn-cancel-recurring" class="btn btn-outline">取消</button>
+              <button id="btn-confirm-recurring" class="btn btn-success">
+                <span class="material-icons-round" style="font-size:14px;">check</span> 確認定期交易
+              </button>
+            </div>
+          </div>
+          
           <!-- Hints -->
           <div class="speech-hints">
             <span class="hint-title">您可以試著說：</span>
@@ -139,6 +175,7 @@
               <button class="hint-tag" onclick="setInputText('幫我查上個月手搖飲總共花多少錢？')">「幫我查上個月手搖飲總共花多少錢？」</button>
               <button class="hint-tag" onclick="setInputText('昨天的中油加油費是多少？')">「昨天的中油加油費是多少？」</button>
               <button class="hint-tag" onclick="setInputText('上週去全聯買了什麼？')">「上週去全聯買了什麼？」</button>
+              <button class="hint-tag" onclick="setInputText('每個月5日固定電話帳單1500元')">「每個月5日固定電話帳單1500元」</button>
             </div>
           </div>
           

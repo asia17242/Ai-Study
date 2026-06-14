@@ -35,6 +35,9 @@ class TransactionResponse(BaseModel):
     merchant: Optional[str] = Field(default="未知", description="商家名稱")
     payment_method: Optional[str] = Field(default="現金", description="付款方式：'現金'、'信用卡' 或 '電子支付'")
     items: Optional[List[str]] = Field(default=[], description="交易明細中的個別商品或細項列表，例如：['鮮奶', '麵包']")
+    is_recurring: Optional[bool] = Field(default=False, description="是否為定期定額交易")
+    day_of_period: Optional[int] = Field(default=None, description="定期交易的每期執行日（如每月5日則為5）")
+    recurring_frequency: Optional[str] = Field(default=None, description="定期頻率：'monthly' 或 'weekly'")
 
 class VoiceInput(BaseModel):
     text: str
@@ -85,7 +88,10 @@ def mock_parse(text: str, current_date: str) -> dict:
             "date": current_date,
             "merchant": "AI 搜尋",
             "payment_method": "系統查詢",
-            "items": []
+            "items": [],
+            "is_recurring": False,
+            "day_of_period": None,
+            "recurring_frequency": None
         }
     elif "中油加油費" in text or "中油加油費是多少" in text:
         return {
@@ -96,7 +102,10 @@ def mock_parse(text: str, current_date: str) -> dict:
             "date": current_date,
             "merchant": "AI 搜尋",
             "payment_method": "系統查詢",
-            "items": []
+            "items": [],
+            "is_recurring": False,
+            "day_of_period": None,
+            "recurring_frequency": None
         }
     elif "全聯買了什麼" in text:
         return {
@@ -107,7 +116,10 @@ def mock_parse(text: str, current_date: str) -> dict:
             "date": current_date,
             "merchant": "AI 搜尋",
             "payment_method": "系統查詢",
-            "items": []
+            "items": [],
+            "is_recurring": False,
+            "day_of_period": None,
+            "recurring_frequency": None
         }
 
     amount = 100
@@ -186,6 +198,28 @@ def mock_parse(text: str, current_date: str) -> dict:
     elif any(k in text for k in ["刷卡", "信用卡", "刷"]):
         payment_method = "信用卡"
 
+    # Recurring pattern detection
+    is_recurring = False
+    day_of_period = None
+    recurring_frequency = None
+    recurring_kw = ["每個月", "每週", "每月", "固定", "定期"]
+    if any(k in text for k in recurring_kw):
+        is_recurring = True
+        if "每週" in text:
+            recurring_frequency = "weekly"
+            week_match = re.search(r'每週\s*(\d+)', text)
+            if week_match:
+                day_of_period = int(week_match.group(1))
+        else:
+            recurring_frequency = "monthly"
+            day_match = re.search(r'(?:每個?月|每月|固定)\s*(\d+)\s*日', text)
+            if day_match:
+                day_of_period = int(day_match.group(1))
+            else:
+                day_match = re.search(r'(\d+)\s*日\s*都', text)
+                if day_match:
+                    day_of_period = int(day_match.group(1))
+
     try:
         base_date = datetime.datetime.strptime(current_date, "%Y-%m-%d").date()
     except Exception:
@@ -209,7 +243,10 @@ def mock_parse(text: str, current_date: str) -> dict:
         "date": tx_date.strftime("%Y-%m-%d"),
         "merchant": merchant,
         "payment_method": payment_method,
-        "items": items
+        "items": items,
+        "is_recurring": is_recurring,
+        "day_of_period": day_of_period,
+        "recurring_frequency": recurring_frequency
     }
 
 @app.post("/api/parse", response_model=TransactionResponse)
@@ -238,6 +275,14 @@ async def parse_voice(input: VoiceInput):
         "6. 付款方式 (payment_method)：必須精準歸類為 '現金'、'信用卡' 或 '電子支付' 之一（街口支付, Line Pay, 中油Pay, 悠遊卡等皆屬 '電子支付'）。\n"
         "7. 日期 (date)：若提及「昨天」、「前天」、「大前天」，請用系統時間基準扣除對應天數算得具體日期。\n"
         "8. 商品細項 (items)：若提及購買了多個具體物件（如鮮奶和麵包），請拆分為字串陣列放入 items 欄位，例如 ['鮮奶', '麵包']。若無具體商品，則傳回空陣列 []。\n\n"
+        "=== 定期交易偵測規則 ===\n"
+        "9. 若語句含「每個月」、「每月」、「每週」、「固定」、「定期」等關鍵字：\n"
+        "   - is_recurring 設為 true。\n"
+        "   - recurring_frequency：'monthly'（每月）或 'weekly'（每週）。\n"
+        "   - day_of_period：從語句中提取執行日期數字。\n"
+        "     例：「每個月5日固定電話支出1500元」→ is_recurring: true, recurring_frequency: 'monthly', day_of_period: 5。\n"
+        "     例：「每週一固定買咖啡」→ is_recurring: true, recurring_frequency: 'weekly', day_of_period: 1。\n"
+        "   若無定期關鍵字，is_recurring 設為 false，其餘欄位設為 null。\n\n"
         "回傳格式必須為符合以下 Pydantic 欄位定義的 JSON。\n"
         "金額(amount)必須為數字類型，收支類型(type)必須是 'expense' 或 'income'。"
     )
