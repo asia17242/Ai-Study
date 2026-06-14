@@ -35,6 +35,7 @@ class TransactionResponse(BaseModel):
     merchant: Optional[str] = Field(default="未知", description="商家名稱")
     payment_method: Optional[str] = Field(default="現金", description="付款方式：'現金'、'信用卡' 或 '電子支付'")
     items: Optional[List[str]] = Field(default=[], description="交易明細中的個別商品或細項列表，例如：['鮮奶', '麵包']")
+    sub_category: Optional[str] = Field(default="其他", description="二級分類子項目，例如：'早餐'、'午餐'、'加油'、'停車'")
     is_recurring: Optional[bool] = Field(default=False, description="是否為定期定額交易")
     day_of_period: Optional[int] = Field(default=None, description="定期交易的每期執行日（如每月5日則為5）")
     recurring_frequency: Optional[str] = Field(default=None, description="定期頻率：'monthly' 或 'weekly'")
@@ -45,6 +46,17 @@ class VoiceInput(BaseModel):
 
 class InvoiceQRInput(BaseModel):
     qr_string: str = Field(description="台灣電子發票左側 QR Code 原始字串")
+
+class TransactionPatchInput(BaseModel):
+    category: Optional[str] = None
+    sub_category: Optional[str] = None
+    payment_method: Optional[str] = None
+    amount: Optional[float] = None
+    merchant: Optional[str] = None
+    description: Optional[str] = None
+    date: Optional[str] = None
+    type: Optional[str] = None
+    items: Optional[List[str]] = None
 
 # Initialize GenAI Client or use Mock mode
 api_key = os.getenv("GEMINI_API_KEY")
@@ -92,6 +104,7 @@ def mock_parse(text: str, current_date: str) -> dict:
             "merchant": "AI 搜尋",
             "payment_method": "系統查詢",
             "items": [],
+            "sub_category": "其他",
             "is_recurring": False,
             "day_of_period": None,
             "recurring_frequency": None
@@ -106,6 +119,7 @@ def mock_parse(text: str, current_date: str) -> dict:
             "merchant": "AI 搜尋",
             "payment_method": "系統查詢",
             "items": [],
+            "sub_category": "其他",
             "is_recurring": False,
             "day_of_period": None,
             "recurring_frequency": None
@@ -120,6 +134,7 @@ def mock_parse(text: str, current_date: str) -> dict:
             "merchant": "AI 搜尋",
             "payment_method": "系統查詢",
             "items": [],
+            "sub_category": "其他",
             "is_recurring": False,
             "day_of_period": None,
             "recurring_frequency": None
@@ -156,6 +171,7 @@ def mock_parse(text: str, current_date: str) -> dict:
     merchant = "未知"
     payment_method = "現金"
     items = []
+    sub_category = "其他"
 
     # Simple item extraction for demo
     if "鮮奶" in text:
@@ -177,14 +193,32 @@ def mock_parse(text: str, current_date: str) -> dict:
     else:
         if any(k in text for k in ["餐", "吃", "飯", "麵", "喝", "飲料", "午餐", "晚餐", "早餐", "麥當勞", "肯德基"]):
             category = "餐飲食品"
+            if "早餐" in text:
+                sub_category = "早餐"
+            elif "午餐" in text:
+                sub_category = "午餐"
+            elif "晚餐" in text:
+                sub_category = "晚餐"
+            elif "宵夜" in text or "消夜" in text:
+                sub_category = "宵夜"
+            elif any(k in text for k in ["飲料", "喝", "咖啡", "茶", "手搖", "奶茶", "拿鐵"]):
+                sub_category = "飲料/零食"
             if "麥當勞" in text:
                 merchant = "麥當勞"
             elif "肯德基" in text:
                 merchant = "肯德基"
         elif any(k in text for k in ["車", "搭", "捷運", "油", "中油", "公車", "高鐵"]):
             category = "交通出行"
-            if "中油" in text:
-                merchant = "中油"
+            if "加油" in text or "中油" in text or "油" in text:
+                sub_category = "加油"
+                if "中油" in text:
+                    merchant = "中油"
+            elif "停車" in text:
+                sub_category = "停車"
+            elif any(k in text for k in ["捷運", "公車", "高鐵", "火車", "搭"]):
+                sub_category = "大眾運輸"
+            elif "計程車" in text or "Uber" in text.lower():
+                sub_category = "計程車"
         elif any(k in text for k in ["買", "購物", "全聯", "大買家", "7-11", "全家", "超市"]):
             category = "日常用品"
             if "全聯" in text:
@@ -247,6 +281,7 @@ def mock_parse(text: str, current_date: str) -> dict:
         "merchant": merchant,
         "payment_method": payment_method,
         "items": items,
+        "sub_category": sub_category,
         "is_recurring": is_recurring,
         "day_of_period": day_of_period,
         "recurring_frequency": recurring_frequency
@@ -278,8 +313,23 @@ async def parse_voice(input: VoiceInput):
         "6. 付款方式 (payment_method)：必須精準歸類為 '現金'、'信用卡' 或 '電子支付' 之一（街口支付, Line Pay, 中油Pay, 悠遊卡等皆屬 '電子支付'）。\n"
         "7. 日期 (date)：若提及「昨天」、「前天」、「大前天」，請用系統時間基準扣除對應天數算得具體日期。\n"
         "8. 商品細項 (items)：若提及購買了多個具體物件（如鮮奶和麵包），請拆分為字串陣列放入 items 欄位，例如 ['鮮奶', '麵包']。若無具體商品，則傳回空陣列 []。\n\n"
+        "=== 二級分類 (sub_category) 偵測規則 ===\n"
+        "9. 若 category 為 '餐飲食品'，請從語句中提取 sub_category：\n"
+        "   - 含「早餐」→ sub_category: '早餐'\n"
+        "   - 含「午餐」→ sub_category: '午餐'\n"
+        "   - 含「晚餐」→ sub_category: '晚餐'\n"
+        "   - 含「宵夜」或「消夜」→ sub_category: '宵夜'\n"
+        "   - 含「飲料」、「喝」、「咖啡」、「茶」、「手搖」、「奶茶」→ sub_category: '飲料/零食'\n"
+        "   - 無特定關鍵字時 → sub_category: '其他'\n"
+        "10. 若 category 為 '交通出行'，請從語句中提取 sub_category：\n"
+        "   - 含「加油」或「中油」→ sub_category: '加油'\n"
+        "   - 含「停車」→ sub_category: '停車'\n"
+        "   - 含「捷運」、「公車」、「高鐵」、「火車」→ sub_category: '大眾運輸'\n"
+        "   - 含「計程車」、「Uber」→ sub_category: '計程車'\n"
+        "   - 無特定關鍵字時 → sub_category: '其他'\n"
+        "11. 其他 category 若無特定 L2 關鍵字，sub_category 預設為 '其他'。\n\n"
         "=== 定期交易偵測規則 ===\n"
-        "9. 若語句含「每個月」、「每月」、「每週」、「固定」、「定期」等關鍵字：\n"
+        "12. 若語句含「每個月」、「每月」、「每週」、「固定」、「定期」等關鍵字：\n"
         "   - is_recurring 設為 true。\n"
         "   - recurring_frequency：'monthly'（每月）或 'weekly'（每週）。\n"
         "   - day_of_period：從語句中提取執行日期數字。\n"
@@ -386,6 +436,7 @@ async def parse_invoice_qr(input: InvoiceQRInput):
             merchant="電子發票",
             payment_method="載具",
             items=[],
+            sub_category="其他",
             is_recurring=False,
             day_of_period=None,
             recurring_frequency=None
@@ -393,6 +444,12 @@ async def parse_invoice_qr(input: InvoiceQRInput):
     except Exception as e:
         print(f"[INVOICE QR] Parse error: {e}")
         raise HTTPException(status_code=400, detail=f"QR 解析錯誤: {str(e)}")
+
+@app.patch("/api/transactions/{tx_id}")
+async def patch_transaction(tx_id: str, input: TransactionPatchInput):
+    update_data = input.model_dump(exclude_none=True)
+    print(f"[PATCH] tx_id={tx_id}, fields={list(update_data.keys())}")
+    return {"status": "ok", "tx_id": tx_id, "updated_fields": update_data}
 
 # Mount static web directory
 static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")

@@ -763,6 +763,77 @@ input[type="text"]:focus {
   color: var(--text-secondary);
 }
 
+/* Payment Method Dropdown */
+.pay-select {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-secondary);
+  font-family: var(--font-family-body);
+  font-size: 11px;
+  padding: 5px 24px 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  outline: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%238e9bb0' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  background-size: 10px;
+  transition: all 0.2s ease;
+}
+
+.pay-select:hover {
+  border-color: rgba(0, 240, 255, 0.25);
+  color: var(--text-primary);
+  background-color: rgba(255, 255, 255, 0.06);
+}
+
+.pay-select:focus {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 6px rgba(0, 240, 255, 0.1);
+}
+
+.pay-select option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* Sub-Category Pills */
+.sub-cat-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.sub-cat-pill {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.sub-cat-pill:hover {
+  background: rgba(0, 240, 255, 0.08);
+  border-color: rgba(0, 240, 255, 0.25);
+  color: var(--text-primary);
+}
+
+.sub-cat-pill.active {
+  background: rgba(0, 240, 255, 0.15);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
 .amt-text {
   font-family: var(--font-family-heading);
   font-size: 15px;

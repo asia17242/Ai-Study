@@ -42,6 +42,11 @@ const animeAssistantQuotes = {
     "嗶！發票掃描成功～這筆消費已被本助理精準攔截，絕不讓任何花費逃出記帳本！📋",
     "掃到了掃到了！主人你的發票我已經幫你記下來了，不用謝啦～(得意地轉圈) 💫",
     "發票已入帳！主人，今天消費的勇氣值得嘉獎，但記得月底要還信用卡唷！😆"
+  ],
+  onSubCategoryDetected: [
+    "主人，剛才那筆『午餐』幫你記在『餐飲』的子項目囉！這樣月底看報表會更清楚呢！✨",
+    "嘿嘿～本助理已經精準把這筆消費歸類到子項了，主人的財務報表保證整整齊齊！📊",
+    "子分類已鎖定！主人以後可以輕鬆看到每個細項花了多少錢喔！🎯"
   ]
 };
 
@@ -145,6 +150,23 @@ const categoryIcons = {
   '投資': 'trending_up',
   '其他': 'category'
 };
+
+// L2 Sub-category mapping
+const subCategories = {
+  '餐飲食品': ['早餐', '午餐', '晚餐', '飲料/零食', '宵夜', '其他'],
+  '交通出行': ['加油', '停車', '大眾運輸', '計程車', '其他'],
+  '日常用品': ['其他'],
+  '娛樂消費': ['其他'],
+  '醫療保健': ['其他'],
+  '教育': ['其他'],
+  '居家': ['其他'],
+  '薪資': ['其他'],
+  '獎金': ['其他'],
+  '投資': ['其他'],
+  '其他': ['其他']
+};
+
+const paymentMethods = ['現金', '信用卡', '行動支付', '銀行轉帳', '其他'];
 
 // ==========================================================================
 // Initialize App
@@ -439,6 +461,7 @@ async function parseVoiceTransaction(text) {
           type: data.type || 'expense',
           amount: parseFloat(data.amount) || 0,
           category: data.category || '其他',
+          sub_category: data.sub_category || '其他',
           description: data.description || text,
           payment_method: data.payment_method || '現金',
           merchant: data.merchant || '未知',
@@ -460,6 +483,7 @@ async function parseVoiceTransaction(text) {
         type: data.type || 'expense',
         amount: parseFloat(data.amount) || 0,
         category: data.category || '其他',
+        sub_category: data.sub_category || '其他',
         description: data.description || text,
         payment_method: data.payment_method || '現金',
         merchant: data.merchant || '未知',
@@ -668,6 +692,14 @@ function updateDashboard() {
         const selected = cat === currentCat ? 'selected' : '';
         categoryOptionsHTML += `<option value="${cat}" ${selected}>${cat}</option>`;
       });
+
+      const currentSub = t.sub_category || '其他';
+      const l2Options = (subCategories[currentCat] || ['其他']);
+      let subCategoryPillsHTML = '';
+      l2Options.forEach(l2 => {
+        const active = l2 === currentSub ? ' active' : '';
+        subCategoryPillsHTML += `<span class="sub-cat-pill${active}" onclick="event.stopPropagation(); updateTransactionSubCategory('${t.id}', '${l2}')">${l2}</span>`;
+      });
       
       tr.innerHTML = `
         <td>
@@ -679,6 +711,9 @@ function updateDashboard() {
               <select class="cat-select" onchange="updateTransactionCategory('${t.id}', this.value)">
                 ${categoryOptionsHTML}
               </select>
+              <div class="sub-cat-pills-row">
+                ${subCategoryPillsHTML}
+              </div>
               <div class="tx-date-wrapper">
                 <span class="tx-date-label" onclick="triggerDatePicker('${t.id}')">${dateDisplay}</span>
                 <input type="date" id="date-picker-${t.id}" class="tx-date-hidden-input" value="${t.date}" onchange="updateTransactionDate('${t.id}', this.value)">
@@ -695,7 +730,13 @@ function updateDashboard() {
           ` : ''}
         </td>
         <td>
-          <span class="pay-badge">${t.payment_method || '現金'}</span>
+          <select class="pay-select" onchange="updateTransactionPayment('${t.id}', this.value)">
+            ${paymentMethods.map(pm => {
+              const currentPay = t.payment_method || '現金';
+              const sel = pm === currentPay ? 'selected' : '';
+              return `<option value="${pm}" ${sel}>${pm}</option>`;
+            }).join('')}
+          </select>
         </td>
         <td>
           <span class="amt-text ${isExpense ? 'expense-color' : 'income-color'}">
@@ -1042,10 +1083,52 @@ window.updateTransactionCategory = function(id, newCategory) {
   const tx = transactions.find(t => t.id === id);
   if (tx) {
     tx.category = newCategory;
+    tx.sub_category = '其他';
     saveTransactionsToStorage();
     updateDashboard();
+    patchTransaction(id, { category: newCategory, sub_category: '其他' });
   }
 };
+
+// Update transaction payment method from dropdown
+window.updateTransactionPayment = function(id, newPayment) {
+  const tx = transactions.find(t => t.id === id);
+  if (tx) {
+    tx.payment_method = newPayment;
+    saveTransactionsToStorage();
+    patchTransaction(id, { payment_method: newPayment });
+  }
+};
+
+// Update transaction sub_category from UI selection
+window.updateTransactionSubCategory = function(id, newSubCategory) {
+  const tx = transactions.find(t => t.id === id);
+  if (tx) {
+    tx.sub_category = newSubCategory;
+    saveTransactionsToStorage();
+    updateDashboard();
+    patchTransaction(id, { sub_category: newSubCategory });
+    if (newSubCategory !== '其他') {
+      triggerAnimeCustomQuote(
+        animeAssistantQuotes.onSubCategoryDetected[
+          Math.floor(Math.random() * animeAssistantQuotes.onSubCategoryDetected.length)
+        ]
+      );
+    }
+  }
+};
+
+async function patchTransaction(id, fields) {
+  try {
+    await fetch(`/api/transactions/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(fields)
+    });
+  } catch (e) {
+    console.error('PATCH failed', e);
+  }
+}
 
 // Programmatically trigger native date picker
 window.triggerDatePicker = function(id) {
@@ -1095,6 +1178,22 @@ function renderModalForm(tx) {
     const sel = cat === tx.category ? 'selected' : '';
     catOptions += `<option value="${cat}" ${sel}>${cat}</option>`;
   });
+
+  const currentCat = tx.category || '其他';
+  const currentSub = tx.sub_category || '其他';
+  const l2Options = subCategories[currentCat] || ['其他'];
+  let subCatPillsHTML = '';
+  l2Options.forEach(l2 => {
+    const active = l2 === currentSub ? ' active' : '';
+    subCatPillsHTML += `<span class="sub-cat-pill${active}" id="modal-sub-${l2}" onclick="this.parentElement.querySelectorAll('.sub-cat-pill').forEach(p=>p.classList.remove('active')); this.classList.add('active'); document.getElementById('modal-sub-category').value='${l2}'">${l2}</span>`;
+  });
+
+  const currentPay = tx.payment_method || '現金';
+  let payOptionsHTML = '';
+  paymentMethods.forEach(pm => {
+    const sel = pm === currentPay ? 'selected' : '';
+    payOptionsHTML += `<option value="${pm}" ${sel}>${pm}</option>`;
+  });
   
   body.innerHTML = `
     <div class="modal-field">
@@ -1104,17 +1203,24 @@ function renderModalForm(tx) {
     <div class="modal-field-row">
       <div class="modal-field">
         <span class="modal-field-label">類別</span>
-        <select id="modal-category">${catOptions}</select>
+        <select id="modal-category" onchange="updateModalSubPills(this.value)">${catOptions}</select>
       </div>
       <div class="modal-field">
         <span class="modal-field-label">金額</span>
         <input type="number" id="modal-amount" value="${tx.amount}" min="0">
       </div>
     </div>
+    <div class="modal-field" id="modal-sub-cat-field">
+      <span class="modal-field-label">子分類</span>
+      <div class="sub-cat-pills-row" id="modal-sub-cat-pills">
+        ${subCatPillsHTML}
+      </div>
+      <input type="hidden" id="modal-sub-category" value="${currentSub}">
+    </div>
     <div class="modal-field-row">
       <div class="modal-field">
         <span class="modal-field-label">帳戶/工具</span>
-        <input type="text" id="modal-payment" value="${tx.payment_method || ''}">
+        <select id="modal-payment">${payOptionsHTML}</select>
       </div>
       <div class="modal-field">
         <span class="modal-field-label">商家名稱</span>
@@ -1145,11 +1251,24 @@ function renderModalForm(tx) {
   `;
 }
 
+function updateModalSubPills(newCategory) {
+  const pillRow = document.getElementById('modal-sub-cat-pills');
+  const l2List = subCategories[newCategory] || ['其他'];
+  let html = '';
+  l2List.forEach(l2 => {
+    const active = l2 === l2List[0] ? ' active' : '';
+    html += `<span class="sub-cat-pill${active}" onclick="this.parentElement.querySelectorAll('.sub-cat-pill').forEach(p=>p.classList.remove('active')); this.classList.add('active'); document.getElementById('modal-sub-category').value='${l2}'">${l2}</span>`;
+  });
+  pillRow.innerHTML = html;
+  document.getElementById('modal-sub-category').value = l2List[0];
+}
+
 function saveModalChanges() {
   const tx = transactions.find(t => t.id === currentModalTxId);
   if (!tx) return;
   
   tx.category = document.getElementById('modal-category').value;
+  tx.sub_category = document.getElementById('modal-sub-category').value || '其他';
   tx.amount = parseInt(document.getElementById('modal-amount').value) || 0;
   tx.payment_method = document.getElementById('modal-payment').value;
   tx.merchant = document.getElementById('modal-merchant').value;
@@ -1162,6 +1281,17 @@ function saveModalChanges() {
   
   saveTransactionsToStorage();
   updateDashboard();
+  patchTransaction(currentModalTxId, {
+    category: tx.category,
+    sub_category: tx.sub_category,
+    payment_method: tx.payment_method,
+    amount: tx.amount,
+    merchant: tx.merchant,
+    description: tx.description,
+    date: tx.date,
+    type: tx.type,
+    items: tx.items
+  });
   closeTransactionModal();
 }
 
@@ -1262,6 +1392,7 @@ async function processQrString(qrString) {
         type: data.type || 'expense',
         amount: parseFloat(data.amount) || 0,
         category: data.category || '日常用品',
+        sub_category: data.sub_category || '其他',
         description: data.description || '電子發票',
         payment_method: data.payment_method || '載具',
         merchant: data.merchant || '電子發票',
