@@ -665,9 +665,9 @@ input[type="text"]:focus {
 }
 
 .bar-chart-value-text {
-  fill: var(--text-secondary);
+  fill: #7a8a9a;
   font-family: var(--font-family-body);
-  font-size: 9px;
+  font-size: 10px;
   text-anchor: middle;
   font-weight: 600;
 }
@@ -677,6 +677,12 @@ input[type="text"]:focus {
   font-family: var(--font-family-body);
   font-size: 9px;
   text-anchor: end;
+}
+
+.bar-chart-legend {
+  font-family: var(--font-family-body);
+  font-size: 9px;
+  fill: var(--text-muted);
 }
 
 /* ==========================================================================

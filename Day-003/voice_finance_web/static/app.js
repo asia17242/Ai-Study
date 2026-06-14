@@ -69,6 +69,34 @@ function triggerAnimeQuote(eventType) {
   typeNext();
 }
 
+function triggerAnimeCustomQuote(customText) {
+  const textEl = document.getElementById('manga-bubble-text');
+  const cursorEl = document.getElementById('typewriter-cursor');
+  const bubble = document.getElementById('manga-bubble');
+  
+  if (typewriterTimer) clearTimeout(typewriterTimer);
+  bubble.classList.add('visible');
+  cursorEl.classList.remove('paused');
+  
+  let i = -1;
+  const chars = [...customText];
+  function typeNext() {
+    if (typewriterTimer) clearTimeout(typewriterTimer);
+    i++;
+    if (i < chars.length) {
+      textEl.textContent = chars.slice(0, i + 1).join('');
+      typewriterTimer = setTimeout(typeNext, 40 + Math.random() * 25);
+    } else {
+      cursorEl.classList.add('paused');
+      typewriterTimer = setTimeout(() => {
+        bubble.classList.remove('visible');
+        textEl.textContent = '';
+      }, 7000);
+    }
+  }
+  typeNext();
+}
+
 // Category colors mapping (corresponds to CSS colors)
 const categoryColors = {
   '餐飲': '#ff9f43',
@@ -180,7 +208,9 @@ function getFilteredTransactions() {
   const now = new Date();
   const today = getFormattedDate(0);
   
-  if (activePeriod === 'week') {
+  if (activePeriod === 'day') {
+    return transactions.filter(t => t.date === today);
+  } else if (activePeriod === 'week') {
     const weekAgo = new Date(now);
     weekAgo.setDate(now.getDate() - 7);
     const weekAgoStr = weekAgo.toISOString().split('T')[0];
@@ -556,7 +586,7 @@ function updateDashboard() {
   
   // Update ledger section title based on period
   const titleEl = document.getElementById('ledger-section-title');
-  const titles = { week: '本週記帳明細列表', month: '本月記帳明細列表', year: '本年記帳明細列表' };
+  const titles = { day: '本日記帳明細列表', week: '本週記帳明細列表', month: '本月記帳明細列表', year: '本年記帳明細列表' };
   if (titleEl) titleEl.innerText = titles[activePeriod] || '記帳明細列表';
   
   // 1. Calculate Sums
@@ -678,7 +708,8 @@ function updateDashboard() {
   }
   
   // 5. Update Budget Progress Bar (period-sensitive)
-  const periodBudget = activePeriod === 'week' ? Math.round(MONTHLY_BUDGET / 4.33) :
+  const periodBudget = activePeriod === 'day' ? Math.round(MONTHLY_BUDGET / 30) :
+                       activePeriod === 'week' ? Math.round(MONTHLY_BUDGET / 4.33) :
                        activePeriod === 'year' ? MONTHLY_BUDGET * 12 :
                        MONTHLY_BUDGET;
   const spendRatio = totalExpense / periodBudget;
@@ -693,7 +724,7 @@ function updateDashboard() {
   }
   
   const budgetLabelEl = document.querySelector('.budget-label');
-  const budgetLabels = { week: '本週預算使用率', month: '本月預算使用率', year: '本年預算使用率' };
+  const budgetLabels = { day: '本日預算使用率', week: '本週預算使用率', month: '本月預算使用率', year: '本年預算使用率' };
   if (budgetLabelEl) budgetLabelEl.innerText = budgetLabels[activePeriod] || '預算使用率';
 }
 
@@ -768,7 +799,7 @@ function renderCategoryPieChart(totalExpense, expenses) {
 }
 
 // ==========================================================================
-// SVG Bar Chart (Year View)
+// SVG Dual-Bar Chart (Year View: Income + Expense)
 // ==========================================================================
 function renderBarChart(displayTx) {
   const pieVisual = document.getElementById('pie-chart-visual');
@@ -782,33 +813,42 @@ function renderBarChart(displayTx) {
   legendContainer.innerHTML = '';
   chartContent.classList.add('has-bars');
   
-  svg.querySelectorAll('.bar-chart-bar, .bar-chart-grid-line, .bar-chart-axis-text, .bar-chart-value-text, .bar-chart-y-label').forEach(el => el.remove());
+  svg.querySelectorAll('.bar-chart-bar, .bar-chart-grid-line, .bar-chart-axis-text, .bar-chart-value-text, .bar-chart-y-label, .bar-chart-legend').forEach(el => el.remove());
   
-  const expenses = displayTx.filter(t => t.type === 'expense');
   const now = new Date();
   const currentYear = now.getFullYear();
-  const monthlyExpenses = {};
-  for (let m = 1; m <= 12; m++) monthlyExpenses[m] = 0;
+  const currentMonth = now.getMonth() + 1;
   
-  expenses.forEach(t => {
+  const monthlyIncome = {};
+  const monthlyExpense = {};
+  for (let m = 1; m <= 12; m++) { monthlyIncome[m] = 0; monthlyExpense[m] = 0; }
+  
+  displayTx.forEach(t => {
     const d = new Date(t.date + 'T00:00:00');
     if (d.getFullYear() === currentYear) {
-      monthlyExpenses[d.getMonth() + 1] += t.amount;
+      const mIdx = d.getMonth() + 1;
+      if (t.type === 'income') {
+        monthlyIncome[mIdx] += t.amount;
+      } else {
+        monthlyExpense[mIdx] += t.amount;
+      }
     }
   });
   
-  const entries = Object.entries(monthlyExpenses);
-  const maxAmount = Math.max(1, ...Object.values(monthlyExpenses));
+  const allValues = [...Object.values(monthlyIncome), ...Object.values(monthlyExpense)];
+  const maxAmount = Math.max(1, ...allValues);
   const chartW = 420, chartH = 200;
-  const pad = { top: 12, right: 14, bottom: 30, left: 36 };
+  const pad = { top: 14, right: 14, bottom: 30, left: 42 };
   const plotW = chartW - pad.left - pad.right;
   const plotH = chartH - pad.top - pad.bottom;
-  const barCount = 12, barGap = 4;
-  const barWidth = (plotW - barGap * (barCount + 1)) / barCount;
-  const currentMonth = now.getMonth() + 1;
+  const barCount = 12, slotGap = 5;
+  const slotWidth = (plotW - slotGap * (barCount + 1)) / barCount;
+  const barInnerGap = 2;
+  const barW = (slotWidth - barInnerGap) / 2;
   
   ensureBarGradients(svg);
   
+  // Grid lines + Y-axis labels
   for (let i = 0; i <= 4; i++) {
     const y = pad.top + (plotH * (4 - i) / 4);
     const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -825,59 +865,131 @@ function renderBarChart(displayTx) {
     svg.appendChild(lbl);
   }
   
-  const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  // Legend
+  const legendY = 6;
+  const leg1 = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  leg1.setAttribute('x', chartW - 100); leg1.setAttribute('y', legendY);
+  leg1.setAttribute('width', 10); leg1.setAttribute('height', 10); leg1.setAttribute('rx', 2);
+  leg1.setAttribute('fill', 'url(#bar-income-gradient)');
+  leg1.setAttribute('class', 'bar-chart-legend');
+  svg.appendChild(leg1);
+  const lt1 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  lt1.setAttribute('x', chartW - 87); lt1.setAttribute('y', legendY + 9);
+  lt1.setAttribute('class', 'bar-chart-axis-text'); lt1.textContent = '收入';
+  lt1.setAttribute('class', 'bar-chart-legend');
+  svg.appendChild(lt1);
   
-  entries.forEach(([month, amount]) => {
-    const m = parseInt(month);
-    const x = pad.left + barGap + (m - 1) * (barWidth + barGap);
-    const barH = maxAmount > 0 ? (amount / maxAmount) * plotH : 0;
-    const y = pad.top + plotH - barH;
+  const leg2 = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  leg2.setAttribute('x', chartW - 52); leg2.setAttribute('y', legendY);
+  leg2.setAttribute('width', 10); leg2.setAttribute('height', 10); leg2.setAttribute('rx', 2);
+  leg2.setAttribute('fill', 'url(#bar-expense-gradient)');
+  leg2.setAttribute('class', 'bar-chart-legend');
+  svg.appendChild(leg2);
+  const lt2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  lt2.setAttribute('x', chartW - 39); lt2.setAttribute('y', legendY + 9);
+  lt2.setAttribute('class', 'bar-chart-axis-text'); lt2.textContent = '支出';
+  lt2.setAttribute('class', 'bar-chart-legend');
+  svg.appendChild(lt2);
+  
+  const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  let hasAlert = false;
+  
+  for (let m = 1; m <= 12; m++) {
+    const slotX = pad.left + slotGap + (m - 1) * (slotWidth + slotGap);
+    const incAmt = monthlyIncome[m] || 0;
+    const expAmt = monthlyExpense[m] || 0;
+    const incH = maxAmount > 0 ? (incAmt / maxAmount) * plotH : 0;
+    const expH = maxAmount > 0 ? (expAmt / maxAmount) * plotH : 0;
+    const incY = pad.top + plotH - incH;
+    const expY = pad.top + plotH - expH;
     const isCurrent = m === currentMonth;
     
-    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    rect.setAttribute('x', x); rect.setAttribute('y', y);
-    rect.setAttribute('width', barWidth); rect.setAttribute('height', barH || 0);
-    rect.setAttribute('rx', 3); rect.setAttribute('class', 'bar-chart-bar');
-    rect.setAttribute('fill', isCurrent ? 'url(#bar-gradient-active)' : 'url(#bar-gradient)');
-    rect.setAttribute('opacity', isCurrent ? '1' : '0.7');
-    svg.appendChild(rect);
+    // 80% alert check
+    const ratio = incAmt > 0 ? expAmt / incAmt : 0;
+    const isAlert = incAmt > 0 && ratio >= 0.8;
+    if (isAlert) hasAlert = true;
     
-    if (amount > 0) {
-      const vt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      vt.setAttribute('x', x + barWidth / 2); vt.setAttribute('y', y - 4);
-      vt.setAttribute('class', 'bar-chart-value-text');
-      vt.textContent = amount >= 1000 ? (amount / 1000).toFixed(1) + 'k' : amount;
+    // Income bar (green gradient)
+    const incRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    incRect.setAttribute('x', slotX); incRect.setAttribute('y', incY);
+    incRect.setAttribute('width', barW); incRect.setAttribute('height', Math.max(incH, 0.5));
+    incRect.setAttribute('rx', 2); incRect.setAttribute('class', 'bar-chart-bar');
+    incRect.setAttribute('fill', 'url(#bar-income-gradient)');
+    incRect.setAttribute('opacity', isCurrent ? '1' : '0.7');
+    svg.appendChild(incRect);
+    
+    if (incAmt > 0) {
+      const vt = createBarValueText(slotX + barW / 2, incY - 12, incAmt);
+      vt.setAttribute('fill', '#00E676');
       svg.appendChild(vt);
     }
     
+    // Expense bar (cyan gradient or red alert)
+    const expX = slotX + barW + barInnerGap;
+    const expRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    expRect.setAttribute('x', expX); expRect.setAttribute('y', expY);
+    expRect.setAttribute('width', barW); expRect.setAttribute('height', Math.max(expH, 0.5));
+    expRect.setAttribute('rx', 2); expRect.setAttribute('class', 'bar-chart-bar');
+    expRect.setAttribute('fill', isAlert ? '#FF4D4D' : 'url(#bar-expense-gradient)');
+    expRect.setAttribute('opacity', isAlert ? '0.9' : (isCurrent ? '1' : '0.7'));
+    svg.appendChild(expRect);
+    
+    if (expAmt > 0) {
+      const vt = createBarValueText(expX + barW / 2, expY - 4, expAmt);
+      vt.setAttribute('fill', isAlert ? '#FF4D4D' : 'var(--text-secondary)');
+      svg.appendChild(vt);
+    }
+    
+    // X-axis label
     const at = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    at.setAttribute('x', x + barWidth / 2); at.setAttribute('y', chartH - 8);
+    at.setAttribute('x', slotX + slotWidth / 2); at.setAttribute('y', chartH - 8);
     at.setAttribute('class', 'bar-chart-axis-text');
     at.textContent = monthNames[m - 1];
     svg.appendChild(at);
-  });
+  }
   
-  const totalExpense = Object.values(monthlyExpenses).reduce((a, b) => a + b, 0);
+  const totalExpense = Object.values(monthlyExpense).reduce((a, b) => a + b, 0);
   document.getElementById('chart-total-value').innerText = '$' + totalExpense.toLocaleString();
+  
+  if (hasAlert) {
+    triggerAnimeCustomQuote('哇啊啊！主人快住手！本月的支出已經突破收入的 80% 防線了！再買下去我們下個月就要集體去路上吃土了啦！(崩潰) 😭');
+  }
+}
+
+function createBarValueText(x, y, amount) {
+  const vt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  vt.setAttribute('x', x); vt.setAttribute('y', y);
+  vt.setAttribute('class', 'bar-chart-value-text');
+  vt.setAttribute('text-anchor', 'middle');
+  const fmtVal = amount >= 1000 ? ((amount / 1000).toFixed(1).replace('.0', '') + 'k') : amount;
+  vt.textContent = fmtVal;
+  return vt;
 }
 
 function ensureBarGradients(svg) {
-  if (svg.querySelector('#bar-gradient')) return;
+  if (svg.querySelector('#bar-expense-gradient')) return;
   const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
   
-  const g1 = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-  g1.setAttribute('id', 'bar-gradient');
-  g1.setAttribute('x1', '0'); g1.setAttribute('x2', '0');
-  g1.setAttribute('y1', '0'); g1.setAttribute('y2', '1');
-  g1.innerHTML = '<stop offset="0%" stop-color="#00F2FE" stop-opacity="0.9"/><stop offset="100%" stop-color="#4FACFE" stop-opacity="0.5"/>';
-  defs.appendChild(g1);
+  const gIncome = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+  gIncome.setAttribute('id', 'bar-income-gradient');
+  gIncome.setAttribute('x1', '0'); gIncome.setAttribute('x2', '0');
+  gIncome.setAttribute('y1', '0'); gIncome.setAttribute('y2', '1');
+  gIncome.innerHTML = '<stop offset="0%" stop-color="#00E676" stop-opacity="0.95"/><stop offset="100%" stop-color="#00B0FF" stop-opacity="0.5"/>';
+  defs.appendChild(gIncome);
   
-  const g2 = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-  g2.setAttribute('id', 'bar-gradient-active');
-  g2.setAttribute('x1', '0'); g2.setAttribute('x2', '0');
-  g2.setAttribute('y1', '0'); g2.setAttribute('y2', '1');
-  g2.innerHTML = '<stop offset="0%" stop-color="#00F2FE" stop-opacity="1"/><stop offset="100%" stop-color="#0072FF" stop-opacity="0.8"/>';
-  defs.appendChild(g2);
+  const gExpense = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+  gExpense.setAttribute('id', 'bar-expense-gradient');
+  gExpense.setAttribute('x1', '0'); gExpense.setAttribute('x2', '0');
+  gExpense.setAttribute('y1', '0'); gExpense.setAttribute('y2', '1');
+  gExpense.innerHTML = '<stop offset="0%" stop-color="#00F2FE" stop-opacity="0.9"/><stop offset="100%" stop-color="#4FACFE" stop-opacity="0.5"/>';
+  defs.appendChild(gExpense);
+  
+  const gExpenseActive = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+  gExpenseActive.setAttribute('id', 'bar-expense-gradient-active');
+  gExpenseActive.setAttribute('x1', '0'); gExpenseActive.setAttribute('x2', '0');
+  gExpenseActive.setAttribute('y1', '0'); gExpenseActive.setAttribute('y2', '1');
+  gExpenseActive.innerHTML = '<stop offset="0%" stop-color="#00F2FE" stop-opacity="1"/><stop offset="100%" stop-color="#0072FF" stop-opacity="0.8"/>';
+  defs.appendChild(gExpenseActive);
   
   svg.insertBefore(defs, svg.firstChild);
 }
