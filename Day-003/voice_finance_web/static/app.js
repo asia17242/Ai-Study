@@ -156,22 +156,216 @@ const categoryIcons = {
   '其他': 'category'
 };
 
-// L2 Sub-category mapping
-const subCategories = {
-  '餐飲食品': ['早餐', '午餐', '晚餐', '飲料/零食', '宵夜', '其他'],
-  '交通出行': ['加油', '停車', '大眾運輸', '計程車', '其他'],
-  '日常用品': ['其他'],
-  '娛樂消費': ['其他'],
-  '醫療保健': ['其他'],
-  '教育': ['其他'],
-  '居家': ['其他'],
-  '薪資': ['其他'],
-  '獎金': ['其他'],
-  '投資': ['其他'],
-  '其他': ['其他']
+// L2 Sub-category mapping (core defaults)
+const CORE_SUB_CATEGORIES = {
+  '餐飲食品': ['早餐', '午餐', '晚餐', '飲料/零食', '宵夜'],
+  '交通出行': ['加油', '停車', '大眾運輸', '計程車'],
+  '日常用品': [],
+  '娛樂消費': [],
+  '醫療保健': [],
+  '教育': [],
+  '居家': [],
+  '薪資': [],
+  '獎金': [],
+  '投資': [],
+  '其他': []
 };
 
-const paymentMethods = ['現金', '信用卡', '行動支付', '銀行轉帳', '其他'];
+const CORE_PAYMENT_METHODS = ['現金', '信用卡', '行動支付', '銀行轉帳'];
+const CORE_PRIMARY_CATEGORIES = ['餐飲食品', '交通出行', '日常用品', '娛樂消費', '醫療保健', '教育', '居家', '薪資', '獎金', '投資'];
+
+function loadDynamicOptions() {
+  const stored = localStorage.getItem('voice_finance_dynamic_options');
+  if (stored) {
+    try { return JSON.parse(stored); } catch (e) {}
+  }
+  const defaults = {
+    accounts: [...CORE_PAYMENT_METHODS, '其他'],
+    categories: [...CORE_PRIMARY_CATEGORIES, '其他'],
+    subCategories: {}
+  };
+  Object.keys(CORE_SUB_CATEGORIES).forEach(cat => {
+    defaults.subCategories[cat] = [...CORE_SUB_CATEGORIES[cat], '其他'];
+  });
+  return defaults;
+}
+
+function saveDynamicOptions(opts) {
+  localStorage.setItem('voice_finance_dynamic_options', JSON.stringify(opts));
+}
+
+let dynamicOptions = loadDynamicOptions();
+
+function getDynamicOptions(type, parent) {
+  if (type === 'accounts') return dynamicOptions.accounts;
+  if (type === 'categories') return dynamicOptions.categories;
+  if (type === 'sub') {
+    if (!dynamicOptions.subCategories[parent]) dynamicOptions.subCategories[parent] = ['其他'];
+    return dynamicOptions.subCategories[parent];
+  }
+  return [];
+}
+
+function addCustomOption(type, parent, value) {
+  const list = (type === 'sub')
+    ? dynamicOptions.subCategories[parent] || (dynamicOptions.subCategories[parent] = ['其他'])
+    : dynamicOptions[type];
+  if (!list.includes(value)) {
+    if (list[list.length - 1] === '其他') {
+      list.splice(list.length - 1, 0, value);
+    } else {
+      list.push(value);
+    }
+    saveDynamicOptions(dynamicOptions);
+  }
+  return list;
+}
+
+function removeCustomOption(type, parent, value) {
+  if (value === '其他') return false;
+  const coreList = type === 'sub' ? CORE_SUB_CATEGORIES[parent] || []
+    : type === 'accounts' ? CORE_PAYMENT_METHODS
+    : CORE_PRIMARY_CATEGORIES;
+  if (coreList.includes(value)) return false;
+  const list = (type === 'sub')
+    ? dynamicOptions.subCategories[parent]
+    : dynamicOptions[type];
+  if (!list) return false;
+  const idx = list.indexOf(value);
+  if (idx >= 0) {
+    list.splice(idx, 1);
+    saveDynamicOptions(dynamicOptions);
+    return true;
+  }
+  return false;
+}
+
+// Dynamic select rendering with inline add-new + delete panel
+const ADD_NEW_VALUE = '__add_new__';
+const _pendingDynamicCallbacks = {};
+
+function renderSelectWithAdd(containerOrId, type, parent, selectedValue, onChangeHandler) {
+  const selectEl = typeof containerOrId === 'string' ? document.getElementById(containerOrId) : containerOrId;
+  if (!selectEl) return;
+  const options = getDynamicOptions(type, parent);
+  let html = '';
+  options.forEach(opt => {
+    const sel = opt === selectedValue ? ' selected' : '';
+    html += `<option value="${escapeHtml(opt)}"${sel}>${escapeHtml(opt)}</option>`;
+  });
+  html += `<option value="${ADD_NEW_VALUE}" style="color:var(--accent-cyan);font-style:italic;">+ 新增自訂項目</option>`;
+  selectEl.innerHTML = html;
+  selectEl.dataset.dynType = type;
+  selectEl.dataset.dynParent = parent || '';
+
+  const key = type + (parent ? ':' + parent : '');
+  if (_pendingDynamicCallbacks[key]) {
+    selectEl.removeEventListener('change', _pendingDynamicCallbacks[key]);
+  }
+  const handler = function() {
+    if (this.value === ADD_NEW_VALUE) {
+      showInlineAddPrompt(this, type, parent, onChangeHandler);
+    } else {
+      onChangeHandler(this.value);
+    }
+  };
+  selectEl.addEventListener('change', handler);
+  _pendingDynamicCallbacks[key] = handler;
+}
+
+function showInlineAddPrompt(selectEl, type, parent, onChangeHandler) {
+  const existingPanel = selectEl.parentElement.querySelector('.inline-add-panel');
+  if (existingPanel) existingPanel.remove();
+
+  const panel = document.createElement('div');
+  panel.className = 'inline-add-panel';
+  panel.innerHTML = `
+    <input type="text" class="inline-add-input" placeholder="請輸入新項目名稱" maxlength="12">
+    <button class="inline-add-confirm btn btn-success" style="padding:4px 10px;font-size:11px;">新增</button>
+    <button class="inline-add-cancel btn btn-outline" style="padding:4px 10px;font-size:11px;">取消</button>
+  `;
+  selectEl.parentElement.appendChild(panel);
+
+  const input = panel.querySelector('.inline-add-input');
+  input.focus();
+  input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') panel.querySelector('.inline-add-confirm').click();
+  });
+  panel.querySelector('.inline-add-confirm').addEventListener('click', () => {
+    const val = input.value.trim();
+    if (!val) return;
+    if (getDynamicOptions(type, parent).includes(val)) {
+      triggerAnimeCustomQuote('主人～這個名稱已經存在了，換一個試試看吧！😅');
+      return;
+    }
+    addCustomOption(type, parent, val);
+    renderSelectWithAdd(selectEl, type, parent, val, onChangeHandler);
+    panel.remove();
+    selectEl.value = val;
+    onChangeHandler(val);
+    triggerAnimeCustomQuote('主人！新的自訂標籤已經裝進選單了！隨時可以使用它來精確記帳囉！🏷️');
+  });
+  panel.querySelector('.inline-add-cancel').addEventListener('click', () => {
+    panel.remove();
+    const options = getDynamicOptions(type, parent);
+    selectEl.value = options[options.length - 2] || options[0];  // select last real option
+  });
+}
+
+function renderDeletePanel(type, parent) {
+  const key = type + (parent ? ':' + parent : '');
+  const existingPanel = document.getElementById('delete-panel-' + key);
+  if (existingPanel) { existingPanel.remove(); return; }
+
+  document.querySelectorAll('.custom-delete-panel').forEach(p => p.remove());
+
+  const options = getDynamicOptions(type, parent);
+  const coreList = type === 'sub' ? [...(CORE_SUB_CATEGORIES[parent] || []), '其他']
+    : type === 'accounts' ? [...CORE_PAYMENT_METHODS, '其他']
+    : [...CORE_PRIMARY_CATEGORIES, '其他'];
+  const deletable = options.filter(o => !coreList.includes(o));
+  if (deletable.length === 0) {
+    triggerAnimeCustomQuote('目前還沒有自訂項目可以刪除喔～先新增一些再來整理吧！📋');
+    return;
+  }
+
+  const panel = document.createElement('div');
+  panel.id = 'delete-panel-' + key;
+  panel.className = 'custom-delete-panel';
+  let itemsHTML = deletable.map(item =>
+    `<div class="delete-panel-item">
+      <span>${escapeHtml(item)}</span>
+      <button class="delete-panel-x" onclick="event.stopPropagation(); removeCustomOption('${type}','${parent||''}','${escapeHtml(item).replace(/'/g,"\\'")}'); document.getElementById('delete-panel-${key}').remove(); triggerRefreshAllSelects()">✕</button>
+    </div>`
+  ).join('');
+  panel.innerHTML = itemsHTML;
+  return panel;
+}
+
+window.triggerRefreshAllSelects = function() {
+  saveDynamicOptions(dynamicOptions);
+  updateDashboard();
+  triggerAnimeCustomQuote('已移除自訂標籤！選單已經更新完畢～✨');
+};
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// Backward-compatible reference wrappers
+function getSubCategories(cat) {
+  return getDynamicOptions('sub', cat);
+}
+
+function getPaymentMethods() {
+  return getDynamicOptions('accounts');
+}
+
+function getPrimaryCategories() {
+  return getDynamicOptions('categories');
+}
 
 // ==========================================================================
 // Initialize App
@@ -696,23 +890,29 @@ function updateDashboard() {
       const isExpense = t.type === 'expense';
       
       // Build options for category select menu
-      const standardCategories = ['餐飲食品', '交通出行', '日常用品', '娛樂消費', '醫療保健', '教育', '居家', '薪資', '獎金', '投資', '其他'];
+      const allCategories = getPrimaryCategories();
+      ['其他'].forEach(c => { if (!allCategories.includes(c)) allCategories.push(c); });
       const currentCat = t.category || '其他';
-      const displayCategories = standardCategories.includes(currentCat) ? standardCategories : [currentCat, ...standardCategories];
+      const displayCategories = allCategories.includes(currentCat) ? allCategories : [currentCat, ...allCategories];
       
       let categoryOptionsHTML = '';
       displayCategories.forEach(cat => {
         const selected = cat === currentCat ? 'selected' : '';
-        categoryOptionsHTML += `<option value="${cat}" ${selected}>${cat}</option>`;
+        categoryOptionsHTML += `<option value="${escapeHtml(cat)}" ${selected}>${escapeHtml(cat)}</option>`;
       });
+      categoryOptionsHTML += `<option value="${ADD_NEW_VALUE}" style="color:var(--accent-cyan);font-style:italic;">+ 新增自訂項目</option>`;
 
       const currentSub = t.sub_category || '其他';
-      const l2Options = (subCategories[currentCat] || ['其他']);
+      const l2Options = getSubCategories(currentCat);
+      if (!l2Options.includes('其他')) l2Options.push('其他');
       let subCategoryPillsHTML = '';
       l2Options.forEach(l2 => {
         const active = l2 === currentSub ? ' active' : '';
         subCategoryPillsHTML += `<span class="sub-cat-pill${active}" onclick="event.stopPropagation(); updateTransactionSubCategory('${t.id}', '${l2}')">${l2}</span>`;
       });
+
+      const allPayments = getPaymentMethods();
+      if (!allPayments.includes('其他')) allPayments.push('其他');
       
       tr.innerHTML = `
         <td>
@@ -721,7 +921,7 @@ function updateDashboard() {
               <span class="material-icons-round">${icon}</span>
             </div>
             <div class="cat-info">
-              <select class="cat-select" onchange="updateTransactionCategory('${t.id}', this.value)">
+              <select class="cat-select" onchange="handleLedgerCatChange(this, '${t.id}')">
                 ${categoryOptionsHTML}
               </select>
               <div class="sub-cat-pills-row">
@@ -738,17 +938,18 @@ function updateDashboard() {
           <span class="desc-text">${t.description}</span>
           ${t.items && t.items.length > 0 ? `
             <div class="sub-items-row">
-              ${t.items.map(item => `<span class="sub-item-tag">${item}</span>`).join('')}
+              ${t.items.map(item => `<span class="sub-item-tag">${escapeHtml(item)}</span>`).join('')}
             </div>
           ` : ''}
         </td>
         <td>
-          <select class="pay-select" onchange="updateTransactionPayment('${t.id}', this.value)">
-            ${paymentMethods.map(pm => {
+          <select class="pay-select" onchange="handleLedgerPayChange(this, '${t.id}')">
+            ${allPayments.map(pm => {
               const currentPay = t.payment_method || '現金';
               const sel = pm === currentPay ? 'selected' : '';
-              return `<option value="${pm}" ${sel}>${pm}</option>`;
+              return `<option value="${escapeHtml(pm)}" ${sel}>${escapeHtml(pm)}</option>`;
             }).join('')}
+            <option value="${ADD_NEW_VALUE}" style="color:var(--accent-cyan);font-style:italic;">+ 新增自訂項目</option>
           </select>
         </td>
         <td>
@@ -1143,6 +1344,26 @@ async function patchTransaction(id, fields) {
   }
 }
 
+window.handleLedgerCatChange = function(selectEl, txId) {
+  if (selectEl.value === ADD_NEW_VALUE) {
+    showInlineAddPrompt(selectEl, 'categories', null, (newVal) => {
+      window.updateTransactionCategory(txId, newVal);
+    });
+  } else {
+    window.updateTransactionCategory(txId, selectEl.value);
+  }
+};
+
+window.handleLedgerPayChange = function(selectEl, txId) {
+  if (selectEl.value === ADD_NEW_VALUE) {
+    showInlineAddPrompt(selectEl, 'accounts', null, (newVal) => {
+      window.updateTransactionPayment(txId, newVal);
+    });
+  } else {
+    window.updateTransactionPayment(txId, selectEl.value);
+  }
+};
+
 // Programmatically trigger native date picker
 window.triggerDatePicker = function(id) {
   const picker = document.getElementById(`date-picker-${id}`);
@@ -1184,29 +1405,35 @@ function closeTransactionModal() {
 
 function renderModalForm(tx) {
   const body = document.getElementById('modal-body');
-  const standardCategories = ['餐飲食品', '交通出行', '日常用品', '娛樂消費', '醫療保健', '教育', '居家', '薪資', '獎金', '投資', '其他'];
-  
+  const allCategories = getPrimaryCategories();
+  if (!allCategories.includes('其他')) allCategories.push('其他');
+
   let catOptions = '';
-  standardCategories.forEach(cat => {
+  allCategories.forEach(cat => {
     const sel = cat === tx.category ? 'selected' : '';
-    catOptions += `<option value="${cat}" ${sel}>${cat}</option>`;
+    catOptions += `<option value="${escapeHtml(cat)}" ${sel}>${escapeHtml(cat)}</option>`;
   });
+  catOptions += `<option value="${ADD_NEW_VALUE}" style="color:var(--accent-cyan);font-style:italic;">+ 新增自訂項目</option>`;
 
   const currentCat = tx.category || '其他';
   const currentSub = tx.sub_category || '其他';
-  const l2Options = subCategories[currentCat] || ['其他'];
+  const l2Options = getSubCategories(currentCat);
+  if (!l2Options.includes('其他')) l2Options.push('其他');
   let subCatPillsHTML = '';
   l2Options.forEach(l2 => {
     const active = l2 === currentSub ? ' active' : '';
     subCatPillsHTML += `<span class="sub-cat-pill${active}" id="modal-sub-${l2}" onclick="this.parentElement.querySelectorAll('.sub-cat-pill').forEach(p=>p.classList.remove('active')); this.classList.add('active'); document.getElementById('modal-sub-category').value='${l2}'">${l2}</span>`;
   });
 
+  const allPayments = getPaymentMethods();
+  if (!allPayments.includes('其他')) allPayments.push('其他');
   const currentPay = tx.payment_method || '現金';
   let payOptionsHTML = '';
-  paymentMethods.forEach(pm => {
+  allPayments.forEach(pm => {
     const sel = pm === currentPay ? 'selected' : '';
-    payOptionsHTML += `<option value="${pm}" ${sel}>${pm}</option>`;
+    payOptionsHTML += `<option value="${escapeHtml(pm)}" ${sel}>${escapeHtml(pm)}</option>`;
   });
+  payOptionsHTML += `<option value="${ADD_NEW_VALUE}" style="color:var(--accent-cyan);font-style:italic;">+ 新增自訂項目</option>`;
   
   body.innerHTML = `
     <div class="modal-field">
@@ -1216,7 +1443,7 @@ function renderModalForm(tx) {
     <div class="modal-field-row">
       <div class="modal-field">
         <span class="modal-field-label">類別</span>
-        <select id="modal-category" onchange="updateModalSubPills(this.value)">${catOptions}</select>
+        <select id="modal-category" onchange="handleModalCatChange(this)">${catOptions}</select>
       </div>
       <div class="modal-field">
         <span class="modal-field-label">金額</span>
@@ -1233,7 +1460,7 @@ function renderModalForm(tx) {
     <div class="modal-field-row">
       <div class="modal-field">
         <span class="modal-field-label">帳戶/工具</span>
-        <select id="modal-payment">${payOptionsHTML}</select>
+        <select id="modal-payment" onchange="handleModalPayChange(this)">${payOptionsHTML}</select>
       </div>
       <div class="modal-field">
         <span class="modal-field-label">商家名稱</span>
@@ -1266,7 +1493,8 @@ function renderModalForm(tx) {
 
 function updateModalSubPills(newCategory) {
   const pillRow = document.getElementById('modal-sub-cat-pills');
-  const l2List = subCategories[newCategory] || ['其他'];
+  const l2List = getSubCategories(newCategory);
+  if (!l2List.includes('其他')) l2List.push('其他');
   let html = '';
   l2List.forEach(l2 => {
     const active = l2 === l2List[0] ? ' active' : '';
@@ -1275,6 +1503,25 @@ function updateModalSubPills(newCategory) {
   pillRow.innerHTML = html;
   document.getElementById('modal-sub-category').value = l2List[0];
 }
+
+window.handleModalCatChange = function(selectEl) {
+  if (selectEl.value === ADD_NEW_VALUE) {
+    showInlineAddPrompt(selectEl, 'categories', null, (newVal) => {
+      updateModalSubPills(newVal);
+      document.getElementById('modal-category').value = newVal;
+    });
+  } else {
+    updateModalSubPills(selectEl.value);
+  }
+};
+
+window.handleModalPayChange = function(selectEl) {
+  if (selectEl.value === ADD_NEW_VALUE) {
+    showInlineAddPrompt(selectEl, 'accounts', null, (newVal) => {
+      selectEl.value = newVal;
+    });
+  }
+};
 
 function saveModalChanges() {
   const tx = transactions.find(t => t.id === currentModalTxId);
@@ -1533,17 +1780,9 @@ function openManualEntryModal() {
   document.getElementById('manual-amount').value = '';
   document.getElementById('manual-description').value = '';
 
-  const paySelect = document.getElementById('manual-payment');
-  paySelect.innerHTML = '';
-  paymentMethods.forEach(pm => {
-    paySelect.innerHTML += `<option value="${pm}">${pm}</option>`;
-  });
-
-  const catSelect = document.getElementById('manual-category');
-  catSelect.innerHTML = '';
-  const l1Categories = ['餐飲食品', '交通出行', '日常用品', '娛樂消費', '醫療保健', '教育', '居家', '薪資', '獎金', '投資', '其他'];
-  l1Categories.forEach(cat => {
-    catSelect.innerHTML += `<option value="${cat}">${cat}</option>`;
+  renderSelectWithAdd('manual-payment', 'accounts', null, '現金', () => {});
+  renderSelectWithAdd('manual-category', 'categories', null, '餐飲食品', () => {
+    updateManualSubCategory();
   });
 
   updateManualSubCategory();
@@ -1563,13 +1802,29 @@ window.setManualType = function(type) {
 };
 
 window.updateManualSubCategory = function() {
-  const cat = document.getElementById('manual-category').value;
-  const l2List = subCategories[cat] || ['其他'];
+  const catSelect = document.getElementById('manual-category');
+  const cat = catSelect.value;
+  if (cat === ADD_NEW_VALUE) return;
+  const l2List = getSubCategories(cat);
+  if (!l2List.includes('其他')) l2List.push('其他');
   const subSelect = document.getElementById('manual-sub-category');
   subSelect.innerHTML = '';
   l2List.forEach(l2 => {
     subSelect.innerHTML += `<option value="${l2}">${l2}</option>`;
   });
+  subSelect.innerHTML += `<option value="${ADD_NEW_VALUE}" style="color:var(--accent-cyan);font-style:italic;">+ 新增自訂項目</option>`;
+
+  const handler = function() {
+    if (this.value === ADD_NEW_VALUE) {
+      showInlineAddPrompt(this, 'sub', cat, (newVal) => {
+        window.updateManualSubCategory();
+        this.value = newVal;
+      });
+    }
+  };
+  subSelect.removeEventListener('change', subSelect._dynHandler);
+  subSelect._dynHandler = handler;
+  subSelect.addEventListener('change', handler);
 };
 
 function submitManualEntry() {

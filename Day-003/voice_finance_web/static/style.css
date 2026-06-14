@@ -834,6 +834,80 @@ input[type="text"]:focus {
   font-weight: 600;
 }
 
+/* Inline Add Panel (below <select> for adding custom option) */
+.inline-add-panel {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  align-items: center;
+}
+
+.inline-add-input {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  border-radius: 6px;
+  padding: 5px 10px;
+  color: var(--text-primary);
+  font-family: var(--font-family-body);
+  font-size: 12px;
+  outline: none;
+  min-width: 0;
+}
+
+.inline-add-input:focus {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 6px rgba(0, 240, 255, 0.15);
+}
+
+/* Custom Delete Panel */
+.custom-delete-panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: var(--bg-secondary);
+  border: 1px solid rgba(255, 82, 82, 0.2);
+  border-radius: 8px;
+  padding: 6px 4px;
+  z-index: 100;
+  max-height: 180px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.delete-panel-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  border-radius: 5px;
+  cursor: default;
+}
+
+.delete-panel-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.delete-panel-x {
+  background: transparent;
+  border: none;
+  color: rgba(255, 82, 82, 0.5);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.delete-panel-x:hover {
+  color: #ff5252;
+  background: rgba(255, 82, 82, 0.1);
+}
+
 .amt-text {
   font-family: var(--font-family-heading);
   font-size: 15px;
