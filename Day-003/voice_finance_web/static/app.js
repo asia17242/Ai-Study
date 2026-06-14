@@ -10,6 +10,9 @@ let activePeriod = 'month';
 let currentModalTxId = null;
 const MONTHLY_BUDGET = 10000;
 let pendingRecurringTx = null;
+let html5QrcodeScanner = null;
+let carrierBarcode = '';
+let carrierPin = '';
 
 // ==========================================================================
 // Anime Assistant Quote Engine
@@ -33,6 +36,12 @@ const animeAssistantQuotes = {
     "主人～別只顧著看螢幕嘛，快來記一筆帳本助理瞧瞧你今天的戰績！😼",
     "Zzz... （流口水）...啊！沒有在睡！本助理只是在閉目養神思考理財策略！",
     "那個...主人，你確定不把剛剛買的那杯奶茶記上去嗎？我等你喔～☕"
+  ],
+  onInvoiceScanned: [
+    "主人！發票已經自動匯入囉！✨",
+    "嗶！發票掃描成功～這筆消費已被本助理精準攔截，絕不讓任何花費逃出記帳本！📋",
+    "掃到了掃到了！主人你的發票我已經幫你記下來了，不用謝啦～(得意地轉圈) 💫",
+    "發票已入帳！主人，今天消費的勇氣值得嘉獎，但記得月底要還信用卡唷！😆"
   ]
 };
 
@@ -377,6 +386,20 @@ function bindUIEvents() {
   });
   document.getElementById('modal-save-btn').addEventListener('click', saveModalChanges);
   document.getElementById('modal-delete-btn').addEventListener('click', deleteFromModal);
+
+  // QR Scanner events
+  document.getElementById('btn-scan-invoice').addEventListener('click', openQrScanner);
+  document.getElementById('scanner-modal-close-btn').addEventListener('click', closeQrScanner);
+  document.getElementById('scanner-modal-overlay').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeQrScanner();
+  });
+
+  // Carrier form events
+  document.getElementById('btn-save-carrier').addEventListener('click', saveCarrierBinding);
+  document.getElementById('btn-clear-carrier').addEventListener('click', clearCarrierBinding);
+
+  // Load saved carrier
+  loadCarrierFromStorage();
 }
 
 // Helper to fill hint texts
@@ -1148,4 +1171,207 @@ function deleteFromModal() {
   saveTransactionsToStorage();
   updateDashboard();
   closeTransactionModal();
+}
+
+// ==========================================================================
+// QR Code Scanner (Taiwan E-Invoice)
+// ==========================================================================
+function openQrScanner() {
+  const overlay = document.getElementById('scanner-modal-overlay');
+  overlay.classList.add('active');
+
+  const resultEl = document.getElementById('qr-scan-result');
+  resultEl.style.display = 'none';
+  resultEl.innerText = '';
+
+  if (!window.Html5Qrcode) {
+    resultEl.style.display = '';
+    resultEl.style.color = '#FF4D4D';
+    resultEl.innerText = 'QR 掃描庫載入失敗，請檢查網路連線。';
+    return;
+  }
+
+  if (html5QrcodeScanner) {
+    html5QrcodeScanner.clear().catch(() => {});
+  }
+
+  html5QrcodeScanner = new Html5Qrcode('qr-reader');
+
+  const config = {
+    fps: 10,
+    qrbox: { width: 250, height: 250 },
+    aspectRatio: 1.0
+  };
+
+  html5QrcodeScanner.start(
+    { facingMode: 'environment' },
+    config,
+    onQrScanSuccess,
+    onQrScanError
+  ).catch(err => {
+    resultEl.style.display = '';
+    resultEl.style.color = '#FFD700';
+    resultEl.innerText = '無法啟動相機，請確認已允許相機權限。您也可以手動貼上 QR Code 字串。';
+
+    const manualInput = document.createElement('div');
+    manualInput.style.cssText = 'margin-top:10px;display:flex;gap:8px;';
+    manualInput.innerHTML = `
+      <input type="text" id="manual-qr-input" placeholder="貼上發票 QR Code 左側字串..."
+             style="flex:1;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:8px 12px;color:white;font-size:13px;outline:none;">
+      <button id="btn-manual-qr-submit" class="btn btn-primary" style="padding:8px 14px;font-size:12px;">提交</button>
+    `;
+    resultEl.parentNode.appendChild(manualInput);
+
+    document.getElementById('btn-manual-qr-submit').addEventListener('click', () => {
+      const qrString = document.getElementById('manual-qr-input').value.trim();
+      if (qrString) processQrString(qrString);
+    });
+  });
+}
+
+function onQrScanSuccess(decodedText) {
+  if (html5QrcodeScanner) {
+    html5QrcodeScanner.stop().catch(() => {});
+    html5QrcodeScanner = null;
+  }
+  processQrString(decodedText);
+}
+
+function onQrScanError() {
+  // Scanning errors are expected during live preview; silently ignore
+}
+
+async function processQrString(qrString) {
+  const resultEl = document.getElementById('qr-scan-result');
+  resultEl.style.display = '';
+  resultEl.style.color = '';
+  resultEl.innerText = '⏳ 正在解析發票 QR Code...';
+
+  try {
+    const response = await fetch('/api/parse-invoice-qr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ qr_string: qrString })
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const newTx = {
+        id: Date.now().toString(),
+        date: data.date,
+        type: data.type || 'expense',
+        amount: parseFloat(data.amount) || 0,
+        category: data.category || '日常用品',
+        description: data.description || '電子發票',
+        payment_method: data.payment_method || '載具',
+        merchant: data.merchant || '電子發票',
+        transcript: `[掃描發票] ${data.description || ''}`,
+        items: data.items || []
+      };
+
+      transactions.unshift(newTx);
+      saveTransactionsToStorage();
+      updateDashboard();
+
+      resultEl.style.color = '#00E676';
+      resultEl.innerText = `✅ 發票已入帳！金額: $${newTx.amount.toLocaleString()}`;
+
+      triggerAnimeCustomQuote(
+        animeAssistantQuotes.onInvoiceScanned[
+          Math.floor(Math.random() * animeAssistantQuotes.onInvoiceScanned.length)
+        ]
+      );
+
+      setTimeout(closeQrScanner, 1500);
+    } else {
+      const err = await response.text();
+      resultEl.style.color = '#FF4D4D';
+      resultEl.innerText = `❌ 發票解析失敗: ${err}`;
+    }
+  } catch (error) {
+    resultEl.style.color = '#FF4D4D';
+    resultEl.innerText = `❌ 連線失敗: ${error.message}`;
+  }
+}
+
+function closeQrScanner() {
+  if (html5QrcodeScanner) {
+    html5QrcodeScanner.stop().catch(() => {});
+    html5QrcodeScanner.clear().catch(() => {});
+    html5QrcodeScanner = null;
+  }
+  document.getElementById('scanner-modal-overlay').classList.remove('active');
+  const manualInput = document.getElementById('manual-qr-input');
+  if (manualInput) manualInput.parentNode.remove();
+}
+
+// ==========================================================================
+// Carrier (手機條碼) Binding
+// ==========================================================================
+function saveCarrierBinding() {
+  const barcode = document.getElementById('carrier-barcode').value.trim();
+  const pin = document.getElementById('carrier-pin').value.trim();
+
+  if (!barcode) {
+    document.getElementById('carrier-status').innerText = '請輸入手機載具條碼';
+    document.getElementById('carrier-status').style.color = '#FFD700';
+    return;
+  }
+
+  if (!pin) {
+    document.getElementById('carrier-status').innerText = '請輸入載具驗證碼';
+    document.getElementById('carrier-status').style.color = '#FFD700';
+    return;
+  }
+
+  if (!/^\/[A-Za-z0-9+\/]{7}$/.test(barcode)) {
+    document.getElementById('carrier-status').innerText = '條碼格式不符（例：/ABC+123）';
+    document.getElementById('carrier-status').style.color = '#FFD700';
+    return;
+  }
+
+  carrierBarcode = barcode;
+  carrierPin = pin;
+
+  localStorage.setItem('voice_finance_carrier', JSON.stringify({
+    barcode: carrierBarcode,
+    pin: carrierPin
+  }));
+
+  document.getElementById('carrier-status').innerText = '✅ 載具已綁定';
+  document.getElementById('carrier-status').style.color = '#00E676';
+
+  triggerAnimeCustomQuote('主人！發票已經自動匯入囉！✨');
+}
+
+function clearCarrierBinding() {
+  carrierBarcode = '';
+  carrierPin = '';
+  localStorage.removeItem('voice_finance_carrier');
+  document.getElementById('carrier-barcode').value = '';
+  document.getElementById('carrier-pin').value = '';
+  document.getElementById('carrier-status').innerText = '';
+}
+
+function loadCarrierFromStorage() {
+  const stored = localStorage.getItem('voice_finance_carrier');
+  if (stored) {
+    try {
+      const data = JSON.parse(stored);
+      carrierBarcode = data.barcode || '';
+      carrierPin = data.pin || '';
+      if (carrierBarcode) {
+        document.getElementById('carrier-barcode').value = carrierBarcode;
+      }
+      if (carrierPin) {
+        document.getElementById('carrier-pin').value = carrierPin;
+      }
+      if (carrierBarcode && carrierPin) {
+        document.getElementById('carrier-status').innerText = '✅ 載具已綁定';
+        document.getElementById('carrier-status').style.color = '#00E676';
+      }
+    } catch (e) {
+      console.error('Failed to parse carrier data', e);
+    }
+  }
 }

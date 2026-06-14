@@ -15,6 +15,8 @@
   
   <!-- Stylesheets -->
   <link rel="stylesheet" href="/static/style.css">
+  <!-- QR Scanner Library -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body>
   
@@ -92,6 +94,37 @@
         <!-- Voice Console Card -->
         <section class="glass-card voice-console-card">
           <h2 class="section-title">智能語音記帳控制台</h2>
+          <div class="console-toolbar">
+            <button id="btn-scan-invoice" class="btn btn-outline btn-toolbar">
+              <span class="material-icons-round" style="font-size:16px;">qr_code_scanner</span> 掃描發票
+            </button>
+          </div>
+
+          <!-- Carrier (手機條碼) Binding Settings -->
+          <div class="carrier-section">
+            <div class="carrier-header">
+              <span class="material-icons-round" style="font-size:18px; color: var(--accent-cyan);">phone_android</span>
+              <span class="carrier-title">手機載具設定</span>
+            </div>
+            <p class="carrier-subtitle">綁定手機條碼後，發票將自動同步至財政部電子發票整合平台</p>
+            <div class="carrier-fields">
+              <div class="carrier-field">
+                <label class="carrier-label">手機載具條碼</label>
+                <input type="text" id="carrier-barcode" class="carrier-input" placeholder="/ABC+123" maxlength="8">
+              </div>
+              <div class="carrier-field">
+                <label class="carrier-label">載具驗證碼</label>
+                <input type="password" id="carrier-pin" class="carrier-input" placeholder="4~8 位數字驗證碼" maxlength="8">
+              </div>
+            </div>
+            <div class="carrier-actions">
+              <span class="carrier-status" id="carrier-status"></span>
+              <button id="btn-clear-carrier" class="btn btn-outline" style="padding:6px 12px; font-size:11px;">清除</button>
+              <button id="btn-save-carrier" class="btn btn-success" style="padding:6px 14px; font-size:11px;">
+                <span class="material-icons-round" style="font-size:14px;">save</span> 綁定載具
+              </button>
+            </div>
+          </div>
           <p class="section-subtitle">點擊麥克風按鈕說話，系統將自動解析金額、類別、時間與商家</p>
           
           <div class="mic-container">
@@ -261,6 +294,22 @@
       </div>
       
     </main>
+  </div>
+  
+  <!-- QR Scanner Modal -->
+  <div class="modal-overlay" id="scanner-modal-overlay">
+    <div class="modal-drawer" id="scanner-modal-drawer">
+      <div class="modal-header">
+        <h3 class="modal-title">掃描電子發票 QR Code</h3>
+        <button class="modal-close-btn" id="scanner-modal-close-btn">
+          <span class="material-icons-round">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="qr-reader" style="width:100%; border-radius:12px; overflow:hidden;"></div>
+        <div id="qr-scan-result" style="margin-top:12px; font-size:12px; color:var(--text-muted); text-align:center; display:none;"></div>
+      </div>
+    </div>
   </div>
   
   <!-- Transaction Detail Modal -->

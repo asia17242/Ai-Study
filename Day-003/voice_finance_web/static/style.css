@@ -1017,6 +1017,31 @@ input[type="text"]:focus {
   transform: translateY(-1px);
 }
 
+/* Toolbar */
+.console-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.btn-toolbar {
+  padding: 8px 14px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+
+/* QR Scanner Modal */
+#qr-reader {
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#qr-reader video {
+  border-radius: 12px;
+}
+
 /* ==========================================================================
    Budget Progress Bar
    ========================================================================== */
@@ -1340,6 +1365,94 @@ input[type="text"]:focus {
   display: flex;
   gap: 10px;
   justify-content: flex-end;
+}
+
+/* ==========================================================================
+   Carrier (手機條碼) Settings
+   ========================================================================== */
+.carrier-section {
+  margin-top: 16px;
+  background: rgba(0, 240, 255, 0.03);
+  border: 1px solid rgba(0, 240, 255, 0.1);
+  border-radius: var(--border-radius-md);
+  padding: 16px 18px;
+}
+
+.carrier-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.carrier-title {
+  font-family: var(--font-family-heading);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+.carrier-subtitle {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+.carrier-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.carrier-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.carrier-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.carrier-input {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 9px 12px;
+  color: var(--text-primary);
+  font-family: var(--font-family-body);
+  font-size: 13px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.carrier-input:focus {
+  border-color: rgba(0, 240, 255, 0.4);
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.1);
+}
+
+.carrier-input::placeholder {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.carrier-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.carrier-status {
+  font-size: 11px;
+  font-weight: 500;
+  margin-right: auto;
 }
 
 /* ==========================================================================

@@ -43,6 +43,9 @@ class VoiceInput(BaseModel):
     text: str
     current_date: str = "2026-06-13"
 
+class InvoiceQRInput(BaseModel):
+    qr_string: str = Field(description="台灣電子發票左側 QR Code 原始字串")
+
 # Initialize GenAI Client or use Mock mode
 api_key = os.getenv("GEMINI_API_KEY")
 mock_mode = False
@@ -352,6 +355,44 @@ async def parse_voice(input: VoiceInput):
             print(f"[ERROR] Legacy SDK parse failed: {e}. Falling back to mock...")
             parsed = mock_parse(input.text, input.current_date)
             return TransactionResponse(**parsed)
+
+@app.post("/api/parse-invoice-qr", response_model=TransactionResponse)
+async def parse_invoice_qr(input: InvoiceQRInput):
+    """Parse Taiwan E-Invoice left-side QR code string."""
+    qr = input.qr_string.strip()
+    print(f"[INVOICE QR] Raw input length: {len(qr)}")
+    
+    try:
+        invoice_number = qr[:10]
+        taiwan_year = qr[10:13]
+        date_mmdd = qr[13:17]
+        hex_amount = qr[21:29]
+        
+        western_year = int(taiwan_year) + 1911
+        mm = date_mmdd[:2]
+        dd = date_mmdd[2:4]
+        date_str = f"{western_year}-{mm}-{dd}"
+        
+        amount = int(hex_amount, 16)
+        
+        print(f"[INVOICE QR] Invoice: {invoice_number}, Date: {date_str}, Amount: {amount}")
+        
+        return TransactionResponse(
+            amount=float(amount),
+            category="日常用品",
+            description=f"電子發票 {invoice_number}",
+            type="expense",
+            date=date_str,
+            merchant="電子發票",
+            payment_method="載具",
+            items=[],
+            is_recurring=False,
+            day_of_period=None,
+            recurring_frequency=None
+        )
+    except Exception as e:
+        print(f"[INVOICE QR] Parse error: {e}")
+        raise HTTPException(status_code=400, detail=f"QR 解析錯誤: {str(e)}")
 
 # Mount static web directory
 static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
