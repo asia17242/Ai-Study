@@ -1122,8 +1122,8 @@ input[type="text"]:focus {
    ========================================================================== */
 .anime-assistant {
   position: fixed;
-  bottom: 16px;
-  right: 16px;
+  bottom: 24px;
+  right: 32px;
   z-index: 50;
   display: flex;
   align-items: flex-end;
@@ -1134,7 +1134,7 @@ input[type="text"]:focus {
 .anime-character {
   pointer-events: auto;
   flex-shrink: 0;
-  animation: anime-bobbing 3s ease-in-out infinite;
+  animation: robotBobbing 3.5s ease-in-out infinite;
   cursor: pointer;
   transition: transform 0.2s ease;
 }
@@ -1147,13 +1147,24 @@ input[type="text"]:focus {
   transform: scale(0.95);
 }
 
-@keyframes anime-bobbing {
-  0%, 100% { transform: translateY(0); }
+@keyframes robotBobbing {
+  0%, 100% { transform: translateY(0px); }
   50% { transform: translateY(-6px); }
 }
 
 .anime-avatar {
-  filter: drop-shadow(0 4px 12px rgba(0, 240, 255, 0.25));
+  filter: drop-shadow(0 4px 20px rgba(0, 240, 255, 0.3));
+  max-width: 140px;
+  height: auto;
+}
+
+.robot-avatar .robot-eye-core {
+  animation: robotEyePulse 2.5s ease-in-out infinite;
+}
+
+@keyframes robotEyePulse {
+  0%, 100% { opacity: 0.8; r: 4; }
+  50% { opacity: 0.35; r: 3.5; }
 }
 
 /* Manga Speech Bubble */
