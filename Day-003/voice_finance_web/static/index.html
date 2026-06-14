@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
@@ -229,8 +229,8 @@
         
       </div>
       
-      <!-- Right Column: Pie Chart and Transaction History -->
-      <div class="grid-right">
+      <!-- Center Column: Charts + Assets & Liabilities -->
+      <div class="grid-center">
         
         <!-- Chart Analysis Card -->
         <section class="glass-card chart-card">
@@ -264,35 +264,6 @@
             </div>
           </div>
         </section>
-        
-        <!-- Transaction List Card -->
-        <section class="glass-card ledger-card">
-          <div class="card-title-row">
-            <h2 class="section-title" id="ledger-section-title">本月記帳明細列表</h2>
-            <span class="material-icons-round section-icon">receipt_long</span>
-          </div>
-          <div class="ledger-table-container">
-            <table class="ledger-table">
-              <thead>
-                <tr>
-                  <th>類別 / 日期</th>
-                  <th>描述</th>
-                  <th>帳戶/工具</th>
-                  <th>金額</th>
-                  <th>操作</th>
-                </tr>
-              </thead>
-              <tbody id="transaction-list-body">
-                <!-- Dynamically populated rows -->
-              </tbody>
-            </table>
-            <div id="no-records-placeholder" class="no-records-container">
-              <span class="material-icons-round placeholder-icon">receipt</span>
-              <p class="placeholder-text">目前沒有記帳紀錄</p>
-              <p class="placeholder-subtext">請使用語音輸入或下方手動欄位開始記帳</p>
-            </div>
-          </div>
-        </section>
 
         <!-- Bank Accounts Card -->
         <section class="glass-card accounts-card">
@@ -323,6 +294,40 @@
             <span class="material-icons-round placeholder-icon" style="font-size:32px;">trending_down</span>
             <p class="placeholder-text">目前沒有任何貸款</p>
             <p class="placeholder-subtext">新增貸款來追蹤還款進度</p>
+          </div>
+        </section>
+        
+      </div>
+      
+      <!-- Right Column: Ledger List -->
+      <div class="grid-right">
+        
+        <!-- Transaction List Card -->
+        <section class="glass-card ledger-card">
+          <div class="card-title-row">
+            <h2 class="section-title" id="ledger-section-title">本月記帳明細列表</h2>
+            <span class="material-icons-round section-icon">receipt_long</span>
+          </div>
+          <div class="ledger-table-container">
+            <table class="ledger-table">
+              <thead>
+                <tr>
+                  <th>類別 / 日期</th>
+                  <th>描述</th>
+                  <th>帳戶/工具</th>
+                  <th>金額</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="transaction-list-body">
+                <!-- Dynamically populated rows -->
+              </tbody>
+            </table>
+            <div id="no-records-placeholder" class="no-records-container">
+              <span class="material-icons-round placeholder-icon">receipt</span>
+              <p class="placeholder-text">目前沒有記帳紀錄</p>
+              <p class="placeholder-subtext">請使用語音輸入或下方手動欄位開始記帳</p>
+            </div>
           </div>
         </section>
         
