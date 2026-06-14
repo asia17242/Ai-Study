@@ -1101,6 +1101,73 @@ input[type="text"]:focus {
   border-radius: 8px;
 }
 
+.btn-accent {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--accent-gradient);
+  color: white;
+  border: none;
+  font-family: var(--font-family-body);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 114, 255, 0.25);
+  transition: all 0.2s ease;
+}
+
+.btn-accent:hover {
+  background: var(--accent-gradient-hover);
+  box-shadow: 0 4px 20px rgba(0, 114, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+/* Manual Entry Type Tabs */
+.manual-type-tabs {
+  display: flex;
+  gap: 0;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  padding: 3px;
+  margin-bottom: 16px;
+}
+
+.manual-type-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--font-family-body);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.manual-type-tab[data-type="expense"].active {
+  background: linear-gradient(135deg, #ff5252 0%, #d50000 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 82, 82, 0.3);
+}
+
+.manual-type-tab[data-type="income"].active {
+  background: linear-gradient(135deg, #00e676 0%, #00c853 100%);
+  color: #000;
+  box-shadow: 0 2px 8px rgba(0, 230, 118, 0.3);
+}
+
+.manual-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
 /* QR Scanner Modal */
 #qr-reader {
   min-height: 300px;

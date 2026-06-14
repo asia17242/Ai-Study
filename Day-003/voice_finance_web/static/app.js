@@ -47,6 +47,11 @@ const animeAssistantQuotes = {
     "主人，剛才那筆『午餐』幫你記在『餐飲』的子項目囉！這樣月底看報表會更清楚呢！✨",
     "嘿嘿～本助理已經精準把這筆消費歸類到子項了，主人的財務報表保證整整齊齊！📊",
     "子分類已鎖定！主人以後可以輕鬆看到每個細項花了多少錢喔！🎯"
+  ],
+  onManualEntry: [
+    "收到！已經幫主人把手動輸入的這一筆確實記在帳本上囉！筆跡非常完美！📝",
+    "手動記帳確認完畢！主人親手寫下的每一筆，本助理都會好好珍藏～💾",
+    "登登！手動賬目已入庫，主人的理財紀律感又提升了 1 級呢！⭐"
   ]
 };
 
@@ -419,6 +424,14 @@ function bindUIEvents() {
   // Carrier form events
   document.getElementById('btn-save-carrier').addEventListener('click', saveCarrierBinding);
   document.getElementById('btn-clear-carrier').addEventListener('click', clearCarrierBinding);
+
+  // Manual Entry events
+  document.getElementById('btn-manual-entry').addEventListener('click', openManualEntryModal);
+  document.getElementById('manual-entry-close-btn').addEventListener('click', closeManualEntryModal);
+  document.getElementById('manual-entry-overlay').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeManualEntryModal();
+  });
+  document.getElementById('btn-submit-manual').addEventListener('click', submitManualEntry);
 
   // Load saved carrier
   loadCarrierFromStorage();
@@ -1505,4 +1518,91 @@ function loadCarrierFromStorage() {
       console.error('Failed to parse carrier data', e);
     }
   }
+}
+
+// ==========================================================================
+// Manual Entry Modal
+// ==========================================================================
+let manualEntryType = 'expense';
+
+function openManualEntryModal() {
+  manualEntryType = 'expense';
+  document.getElementById('manual-type-tabs').querySelectorAll('.manual-type-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.manual-type-tab[data-type="expense"]').classList.add('active');
+
+  document.getElementById('manual-amount').value = '';
+  document.getElementById('manual-description').value = '';
+
+  const paySelect = document.getElementById('manual-payment');
+  paySelect.innerHTML = '';
+  paymentMethods.forEach(pm => {
+    paySelect.innerHTML += `<option value="${pm}">${pm}</option>`;
+  });
+
+  const catSelect = document.getElementById('manual-category');
+  catSelect.innerHTML = '';
+  const l1Categories = ['餐飲食品', '交通出行', '日常用品', '娛樂消費', '醫療保健', '教育', '居家', '薪資', '獎金', '投資', '其他'];
+  l1Categories.forEach(cat => {
+    catSelect.innerHTML += `<option value="${cat}">${cat}</option>`;
+  });
+
+  updateManualSubCategory();
+
+  document.getElementById('manual-entry-overlay').classList.add('active');
+  setTimeout(() => document.getElementById('manual-amount').focus(), 100);
+}
+
+function closeManualEntryModal() {
+  document.getElementById('manual-entry-overlay').classList.remove('active');
+}
+
+window.setManualType = function(type) {
+  manualEntryType = type;
+  document.getElementById('manual-type-tabs').querySelectorAll('.manual-type-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.manual-type-tab[data-type="${type}"]`).classList.add('active');
+};
+
+window.updateManualSubCategory = function() {
+  const cat = document.getElementById('manual-category').value;
+  const l2List = subCategories[cat] || ['其他'];
+  const subSelect = document.getElementById('manual-sub-category');
+  subSelect.innerHTML = '';
+  l2List.forEach(l2 => {
+    subSelect.innerHTML += `<option value="${l2}">${l2}</option>`;
+  });
+};
+
+function submitManualEntry() {
+  const amountVal = parseFloat(document.getElementById('manual-amount').value);
+  if (!amountVal || amountVal <= 0) {
+    triggerAnimeCustomQuote('主人～金額好像還沒填對喔！請確認一下再按確認記帳～🧐');
+    return;
+  }
+
+  const today = getFormattedDate(0);
+  const newTx = {
+    id: Date.now().toString(),
+    date: today,
+    type: manualEntryType,
+    amount: amountVal,
+    category: document.getElementById('manual-category').value || '其他',
+    sub_category: document.getElementById('manual-sub-category').value || '其他',
+    description: document.getElementById('manual-description').value.trim() || '手動記帳',
+    payment_method: document.getElementById('manual-payment').value || '現金',
+    merchant: '手動輸入',
+    transcript: `[手動記帳] ${document.getElementById('manual-description').value.trim() || '手動記帳'}`,
+    items: []
+  };
+
+  transactions.unshift(newTx);
+  saveTransactionsToStorage();
+  updateDashboard();
+
+  triggerAnimeCustomQuote(
+    animeAssistantQuotes.onManualEntry[
+      Math.floor(Math.random() * animeAssistantQuotes.onManualEntry.length)
+    ]
+  );
+
+  closeManualEntryModal();
 }

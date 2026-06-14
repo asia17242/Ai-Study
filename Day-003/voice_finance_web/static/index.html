@@ -98,6 +98,9 @@
             <button id="btn-scan-invoice" class="btn btn-outline btn-toolbar">
               <span class="material-icons-round" style="font-size:16px;">qr_code_scanner</span> 掃描發票
             </button>
+            <button id="btn-manual-entry" class="btn btn-accent btn-toolbar">
+              <span class="material-icons-round" style="font-size:16px;">edit_note</span> 手動記帳
+            </button>
           </div>
 
           <!-- Carrier (手機條碼) Binding Settings -->
@@ -309,9 +312,56 @@
         <div id="qr-reader" style="width:100%; border-radius:12px; overflow:hidden;"></div>
         <div id="qr-scan-result" style="margin-top:12px; font-size:12px; color:var(--text-muted); text-align:center; display:none;"></div>
       </div>
+</div>
+  </div>
+
+  <!-- Manual Entry Modal -->
+  <div class="modal-overlay" id="manual-entry-overlay">
+    <div class="modal-drawer" id="manual-entry-drawer">
+      <div class="modal-header">
+        <h3 class="modal-title">手動記帳</h3>
+        <button class="modal-close-btn" id="manual-entry-close-btn">
+          <span class="material-icons-round">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="manual-type-tabs" id="manual-type-tabs">
+          <button class="manual-type-tab active" data-type="expense" onclick="setManualType('expense')">
+            <span class="material-icons-round" style="font-size:16px;">trending_down</span> 支出
+          </button>
+          <button class="manual-type-tab" data-type="income" onclick="setManualType('income')">
+            <span class="material-icons-round" style="font-size:16px;">trending_up</span> 收入
+          </button>
+        </div>
+        <div class="modal-field">
+          <span class="modal-field-label">金額</span>
+          <input type="number" id="manual-amount" placeholder="請輸入金額" min="0" step="1" autofocus>
+        </div>
+        <div class="modal-field">
+          <span class="modal-field-label">帳戶 / 工具</span>
+          <select id="manual-payment"></select>
+        </div>
+        <div class="modal-field">
+          <span class="modal-field-label">主類別</span>
+          <select id="manual-category" onchange="updateManualSubCategory()"></select>
+        </div>
+        <div class="modal-field">
+          <span class="modal-field-label">子項目</span>
+          <select id="manual-sub-category"></select>
+        </div>
+        <div class="modal-field">
+          <span class="modal-field-label">描述 / 備註（選填）</span>
+          <input type="text" id="manual-description" placeholder="備註說明（選填）">
+        </div>
+      </div>
+      <div class="modal-footer manual-footer">
+        <button id="btn-submit-manual" class="btn btn-success" style="width:100%;">
+          <span class="material-icons-round" style="font-size:16px;">check_circle</span> 確認記帳
+        </button>
+      </div>
     </div>
   </div>
-  
+
   <!-- Transaction Detail Modal -->
   <div class="modal-overlay" id="modal-overlay">
     <div class="modal-drawer" id="modal-drawer">
