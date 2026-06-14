@@ -13,6 +13,8 @@ let pendingRecurringTx = null;
 let html5QrcodeScanner = null;
 let carrierBarcode = '';
 let carrierPin = '';
+let bankAccounts = [];
+let loans = [];
 
 // ==========================================================================
 // Anime Assistant Quote Engine
@@ -52,6 +54,11 @@ const animeAssistantQuotes = {
     "收到！已經幫主人把手動輸入的這一筆確實記在帳本上囉！筆跡非常完美！📝",
     "手動記帳確認完畢！主人親手寫下的每一筆，本助理都會好好珍藏～💾",
     "登登！手動賬目已入庫，主人的理財紀律感又提升了 1 級呢！⭐"
+  ],
+  onLoanRepayment: [
+    "哇！主人今天又一筆還款成功囉！看到負債進度條持續縮短，本助理真的太佩服你的毅力了！我們離無債一身輕又更近一步了！🎉",
+    "貸款還款已記錄！主人你是本助理見過最自律的理財達人，債務進度條又往前衝了一截！💪",
+    "鏘鏘！又一筆還款入帳～負債正以肉眼可見的速度消失中，太感動了！😭✨"
   ]
 };
 
@@ -372,9 +379,14 @@ function getPrimaryCategories() {
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
   loadTransactionsFromStorage();
+  loadAccountsFromStorage();
+  loadLoansFromStorage();
   initSpeechRecognition();
   bindUIEvents();
   updateDashboard();
+  renderAccountsPanel();
+  renderLoansPanel();
+  checkAutoRepayments();
 });
 
 // Load transactions from localStorage
@@ -627,6 +639,10 @@ function bindUIEvents() {
   });
   document.getElementById('btn-submit-manual').addEventListener('click', submitManualEntry);
 
+  // Bank Account & Loan events
+  document.getElementById('btn-add-account').addEventListener('click', addAccount);
+  document.getElementById('btn-add-loan').addEventListener('click', addLoan);
+
   // Load saved carrier
   loadCarrierFromStorage();
 }
@@ -699,6 +715,7 @@ async function parseVoiceTransaction(text) {
       };
       
       transactions.unshift(newTx);
+      syncAccountBalance(newTx.payment_method, newTx.amount, newTx.type);
       saveTransactionsToStorage();
       updateDashboard();
       
@@ -1661,6 +1678,7 @@ async function processQrString(qrString) {
       };
 
       transactions.unshift(newTx);
+      syncAccountBalance(newTx.payment_method, newTx.amount, newTx.type);
       saveTransactionsToStorage();
       updateDashboard();
 
@@ -1850,6 +1868,7 @@ function submitManualEntry() {
   };
 
   transactions.unshift(newTx);
+  syncAccountBalance(newTx.payment_method, newTx.amount, newTx.type);
   saveTransactionsToStorage();
   updateDashboard();
 
@@ -1860,4 +1879,156 @@ function submitManualEntry() {
   );
 
   closeManualEntryModal();
+}
+
+// ==========================================================================
+// Bank Account Management
+// ==========================================================================
+function loadAccountsFromStorage() {
+  const stored = localStorage.getItem('voice_finance_bank_accounts');
+  if (stored) { try { bankAccounts = JSON.parse(stored); } catch (e) { bankAccounts = []; } }
+}
+
+function saveAccountsToStorage() {
+  localStorage.setItem('voice_finance_bank_accounts', JSON.stringify(bankAccounts));
+}
+
+function renderAccountsPanel() {
+  const listEl = document.getElementById('accounts-list');
+  const emptyEl = document.getElementById('accounts-empty');
+  listEl.innerHTML = '';
+  if (bankAccounts.length === 0) { emptyEl.classList.add('active'); return; }
+  emptyEl.classList.remove('active');
+  bankAccounts.forEach(acc => {
+    const typeIcon = acc.type === 'bank' ? 'account_balance' : acc.type === 'wallet' ? 'wallet' : 'savings';
+    const row = document.createElement('div');
+    row.className = 'account-row';
+    row.innerHTML = '<div class="account-info"><span class="material-icons-round account-type-icon">' + typeIcon + '</span><div><span class="account-name">' + escapeHtml(acc.name) + '</span><span class="account-type-badge">' + (acc.type === 'bank' ? '銀行' : acc.type === 'wallet' ? '錢包' : '現金') + '</span></div></div><div class="account-balance"><span class="balance-value" ondblclick="editAccountBalance(\'' + acc.id + '\')" title="雙擊編輯餘額">$' + acc.balance.toLocaleString() + '</span><button class="delete-action-btn" onclick="deleteAccount(\'' + acc.id + '\')"><span class="material-icons-round">delete_outline</span></button></div>';
+    listEl.appendChild(row);
+  });
+}
+
+function addAccount() {
+  var name = prompt('請輸入帳戶名稱（例如：國泰世華）：');
+  if (!name || !name.trim()) return;
+  var type = prompt('請輸入帳戶類型（bank/cash/wallet）：', 'bank');
+  if (!type) return;
+  var balance = parseFloat(prompt('請輸入目前餘額：', '0'));
+  bankAccounts.push({ id: Date.now().toString(), name: name.trim(), type: type.trim() || 'bank', balance: isNaN(balance) ? 0 : balance });
+  saveAccountsToStorage();
+  renderAccountsPanel();
+  updateDashboard();
+}
+
+function deleteAccount(id) {
+  if (confirm('確定要刪除此帳戶嗎？')) {
+    bankAccounts = bankAccounts.filter(function(a) { return a.id !== id; });
+    saveAccountsToStorage();
+    renderAccountsPanel();
+    updateDashboard();
+  }
+}
+
+window.editAccountBalance = function(id) {
+  var acc = bankAccounts.find(function(a) { return a.id === id; });
+  if (!acc) return;
+  var newBalance = prompt('編輯 ' + acc.name + ' 的餘額：', acc.balance);
+  if (newBalance === null) return;
+  var val = parseFloat(newBalance);
+  if (!isNaN(val)) { acc.balance = val; saveAccountsToStorage(); renderAccountsPanel(); updateDashboard(); }
+};
+
+function syncAccountBalance(paymentMethod, amount, txType) {
+  var acc = bankAccounts.find(function(a) { return a.name === paymentMethod; });
+  if (!acc) return;
+  if (txType === 'expense') { acc.balance -= amount; } else { acc.balance += amount; }
+  saveAccountsToStorage();
+  renderAccountsPanel();
+}
+
+// ==========================================================================
+// Loan Management
+// ==========================================================================
+function loadLoansFromStorage() {
+  var stored = localStorage.getItem('voice_finance_loans');
+  if (stored) { try { loans = JSON.parse(stored); } catch (e) { loans = []; } }
+}
+
+function saveLoansToStorage() {
+  localStorage.setItem('voice_finance_loans', JSON.stringify(loans));
+}
+
+function renderLoansPanel() {
+  var listEl = document.getElementById('loans-list');
+  var emptyEl = document.getElementById('loans-empty');
+  listEl.innerHTML = '';
+  if (loans.length === 0) { emptyEl.classList.add('active'); return; }
+  emptyEl.classList.remove('active');
+  loans.forEach(function(loan) {
+    var repaidPercent = loan.totalPrincipal > 0 ? Math.round(((loan.totalPrincipal - loan.remainingBalance) / loan.totalPrincipal) * 100) : 0;
+    var row = document.createElement('div');
+    row.className = 'loan-row';
+    var repaidBtn = loan.remainingBalance > 0 ? '<button class="btn btn-success" style="padding:4px 10px;font-size:11px;margin-top:8px;" onclick="makeLoanRepayment(\'' + loan.id + '\')"><span class="material-icons-round" style="font-size:13px;">payments</span> 記錄還款</button>' : '<span style="color:var(--color-income);font-size:11px;"> 已全額還清</span>';
+    row.innerHTML = '<div class="loan-header"><span class="loan-name">' + escapeHtml(loan.name) + '</span><span class="loan-due">下期: ' + (loan.nextDueDate || '---') + '</span><button class="delete-action-btn" onclick="deleteLoan(\'' + loan.id + '\')"><span class="material-icons-round">delete_outline</span></button></div><div class="loan-bar-wrapper"><div class="loan-bar-track"><div class="loan-bar-fill" style="width:' + repaidPercent + '%;"></div></div><span class="loan-bar-label">' + repaidPercent + '% 已還</span></div><div class="loan-details"><span>總額: $' + loan.totalPrincipal.toLocaleString() + '</span><span>剩餘: $' + loan.remainingBalance.toLocaleString() + '</span><span>月付: $' + loan.monthlyPayment.toLocaleString() + '</span></div>' + repaidBtn;
+    listEl.appendChild(row);
+  });
+}
+
+function addLoan() {
+  var name = prompt('請輸入貸款名稱：');
+  if (!name || !name.trim()) return;
+  var total = parseFloat(prompt('貸款總額：', '0'));
+  if (isNaN(total) || total <= 0) return;
+  var remaining = parseFloat(prompt('剩餘本金：', total.toString()));
+  var monthly = parseFloat(prompt('每月還款金額：', '0'));
+  var due = prompt('下次還款日期 (YYYY-MM-DD)：', new Date().toISOString().split('T')[0]);
+  loans.push({ id: Date.now().toString(), name: name.trim(), totalPrincipal: total, remainingBalance: isNaN(remaining) ? total : remaining, monthlyPayment: isNaN(monthly) ? 0 : monthly, nextDueDate: due || '' });
+  saveLoansToStorage();
+  renderLoansPanel();
+}
+
+function deleteLoan(id) {
+  if (confirm('確定要刪除此貸款項目嗎？')) {
+    loans = loans.filter(function(l) { return l.id !== id; });
+    saveLoansToStorage();
+    renderLoansPanel();
+  }
+}
+
+window.makeLoanRepayment = function(id) {
+  var loan = loans.find(function(l) { return l.id === id; });
+  if (!loan || loan.remainingBalance <= 0) return;
+  var amount = Math.min(loan.monthlyPayment, loan.remainingBalance);
+  loan.remainingBalance = Math.max(0, loan.remainingBalance - amount);
+  var dueDate = new Date(loan.nextDueDate);
+  if (!isNaN(dueDate.getTime())) { dueDate.setMonth(dueDate.getMonth() + 1); loan.nextDueDate = dueDate.toISOString().split('T')[0]; }
+  saveLoansToStorage();
+  renderLoansPanel();
+  var today = getFormattedDate(0);
+  transactions.unshift({ id: Date.now().toString(), date: today, type: 'expense', amount: amount, category: '居家', sub_category: '其他', description: loan.name + ' 還款', payment_method: '銀行轉帳', merchant: loan.name, transcript: '[貸款還款] ' + loan.name + ' $' + amount, items: [] });
+  saveTransactionsToStorage();
+  updateDashboard();
+  triggerAnimeCustomQuote(animeAssistantQuotes.onLoanRepayment[Math.floor(Math.random() * animeAssistantQuotes.onLoanRepayment.length)]);
+};
+
+function checkAutoRepayments() {
+  var today = getFormattedDate(0);
+  var didRepay = false;
+  loans.forEach(function(loan) {
+    if (loan.nextDueDate && loan.nextDueDate <= today && loan.remainingBalance > 0) {
+      var amount = Math.min(loan.monthlyPayment, loan.remainingBalance);
+      loan.remainingBalance = Math.max(0, loan.remainingBalance - amount);
+      var dueDate = new Date(loan.nextDueDate);
+      if (!isNaN(dueDate.getTime())) { dueDate.setMonth(dueDate.getMonth() + 1); loan.nextDueDate = dueDate.toISOString().split('T')[0]; }
+      transactions.unshift({ id: Date.now().toString(), date: today, type: 'expense', amount: amount, category: '居家', sub_category: '其他', description: loan.name + ' 自動還款', payment_method: '銀行轉帳', merchant: loan.name, transcript: '[自動還款] ' + loan.name + ' $' + amount, items: [] });
+      didRepay = true;
+    }
+  });
+  if (didRepay) {
+    saveLoansToStorage();
+    saveTransactionsToStorage();
+    updateDashboard();
+    renderLoansPanel();
+    triggerAnimeCustomQuote(animeAssistantQuotes.onLoanRepayment[Math.floor(Math.random() * animeAssistantQuotes.onLoanRepayment.length)]);
+  }
 }

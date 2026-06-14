@@ -914,6 +914,125 @@ input[type="text"]:focus {
   font-weight: 700;
 }
 
+/* Bank Account Rows */
+.account-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.account-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.account-type-icon {
+  font-size: 20px;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 6px;
+}
+
+.account-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: block;
+}
+
+.account-type-badge {
+  font-size: 10px;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-top: 2px;
+  display: inline-block;
+}
+
+.account-balance {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.balance-value {
+  font-family: var(--font-family-heading);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.balance-value:hover {
+  opacity: 0.7;
+}
+
+/* Loan Rows */
+.loan-row {
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.loan-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.loan-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.loan-due {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.loan-bar-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.loan-bar-track {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: #2A2E3D;
+  overflow: hidden;
+}
+
+.loan-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #00F2FE 0%, #4FACFE 100%);
+  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.loan-bar-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.loan-details {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
 .delete-action-btn {
   background: transparent;
   border: none;
