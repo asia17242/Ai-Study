@@ -1970,3 +1970,48 @@ input[type="text"]:focus {
   color: var(--accent-cyan);
   background: rgba(0, 240, 255, 0.08);
 }
+
+/* ==========================================================================
+   Privacy Masking & Inline Editing Styles
+   ========================================================================== */
+.privacy-btn {
+  padding: 6px 10px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+}
+
+.privacy-btn:hover {
+  background: rgba(0, 240, 255, 0.12);
+  border-color: rgba(0, 240, 255, 0.35);
+}
+
+.privacy-masked {
+  filter: blur(2px);
+  -webkit-filter: blur(2px);
+  transition: filter 0.2s ease;
+}
+
+.inline-edit-input {
+  animation: inline-edit-pop 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes inline-edit-pop {
+  from { transform: scale(0.95); opacity: 0.6; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.desc-text, .amt-text {
+  cursor: text;
+  transition: background-color 0.15s ease;
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+}
+
+.desc-text:hover, .amt-text:hover {
+  background-color: rgba(0, 240, 255, 0.06);
+}

@@ -31,6 +31,9 @@
         <span class="badge">Web PoC v3.0</span>
       </div>
       <div class="header-right">
+        <button id="privacy-toggle-btn" class="btn btn-outline privacy-btn" title="隱私遮罩模式" style="margin-right:12px;padding:6px 12px;">
+          <span class="material-icons-round" id="privacy-toggle-icon" style="font-size:20px;">visibility</span>
+        </button>
         <span id="connection-status" class="status-indicator connected">
           <span class="indicator-dot"></span> 後端已連線
         </span>
@@ -306,9 +309,15 @@
         <section class="glass-card ledger-card">
           <div class="card-title-row">
             <h2 class="section-title" id="ledger-section-title">本月記帳明細列表</h2>
-            <div style="display:flex;align-items:center;gap:10px;">
-              <button id="btn-export-csv" class="btn btn-outline" style="padding:5px 12px;font-size:11px;" title="匯出明細">
-                <span class="material-icons-round" style="font-size:14px;">file_download</span> 匯出明細
+            <div style="display:flex;align-items:center;gap:6px;">
+              <button id="btn-export-csv" class="btn btn-outline" style="padding:5px 10px;font-size:11px;" title="匯出明細">
+                <span class="material-icons-round" style="font-size:14px;">file_download</span> CSV
+              </button>
+              <button id="btn-export-backup" class="btn btn-outline" style="padding:5px 10px;font-size:11px;" title="備份帳本">
+                <span class="material-icons-round" style="font-size:14px;">backup</span> 備份
+              </button>
+              <button id="btn-import-backup" class="btn btn-outline" style="padding:5px 10px;font-size:11px;" title="還原帳本">
+                <span class="material-icons-round" style="font-size:14px;">restore</span> 還原
               </button>
               <span class="material-icons-round section-icon">receipt_long</span>
             </div>

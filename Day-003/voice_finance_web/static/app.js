@@ -15,6 +15,7 @@ let carrierBarcode = '';
 let carrierPin = '';
 let bankAccounts = [];
 let loans = [];
+let isPrivacyMode = false;
 
 // ==========================================================================
 // Anime Assistant Quote Engine
@@ -361,6 +362,239 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+// ==========================================================================
+// Privacy Masking Module
+// ==========================================================================
+function togglePrivacyMode() {
+  isPrivacyMode = !isPrivacyMode;
+  const icon = document.getElementById('privacy-toggle-icon');
+  if (icon) {
+    icon.textContent = isPrivacyMode ? 'visibility_off' : 'visibility';
+  }
+  updateDashboard();
+  renderAccountsPanel();
+  renderLoansPanel();
+}
+
+function applyPrivacyMask() {
+  const selectors = [
+    '#total-balance', '#total-income', '#total-expense',
+    '#chart-total-value', '.amt-text', '.legend-value',
+    '.balance-value', '#budget-percent'
+  ];
+  selectors.forEach(function(sel) {
+    document.querySelectorAll(sel).forEach(function(el) {
+      if (!el.dataset.originalText) {
+        el.dataset.originalText = el.textContent;
+      }
+      el.textContent = '\u2022\u2022\u2022\u2022\u2022\u2022';
+      el.classList.add('privacy-masked');
+    });
+  });
+
+  document.querySelectorAll('.loan-details span').forEach(function(el) {
+    if (!el.dataset.originalText) {
+      el.dataset.originalText = el.textContent;
+    }
+    el.textContent = '\u2022\u2022\u2022\u2022\u2022\u2022';
+    el.classList.add('privacy-masked');
+  });
+
+  document.querySelectorAll('.loan-bar-label').forEach(function(el) {
+    if (!el.dataset.originalText) {
+      el.dataset.originalText = el.textContent;
+    }
+    el.textContent = '\u2022\u2022\u2022\u2022\u2022\u2022';
+    el.classList.add('privacy-masked');
+  });
+
+  document.querySelectorAll('.bar-chart-value-text').forEach(function(el) {
+    if (!el.dataset.originalText_privacy) {
+      el.dataset.originalText_privacy = el.textContent;
+    }
+    el.textContent = '\u2022\u2022\u2022';
+    el.setAttribute('data-privacy-masked', '1');
+  });
+}
+
+function removePrivacyMask() {
+  document.querySelectorAll('.privacy-masked').forEach(function(el) {
+    if (el.dataset.originalText) {
+      el.textContent = el.dataset.originalText;
+      delete el.dataset.originalText;
+    }
+    el.classList.remove('privacy-masked');
+  });
+  document.querySelectorAll('[data-privacy-masked="1"]').forEach(function(el) {
+    if (el.dataset.originalText_privacy) {
+      el.textContent = el.dataset.originalText_privacy;
+      delete el.dataset.originalText_privacy;
+    }
+    el.removeAttribute('data-privacy-masked');
+  });
+}
+
+// ==========================================================================
+// Inline Ledger Row Editing
+// ==========================================================================
+function startInlineDescEdit(spanEl, txId) {
+  if (spanEl.querySelector('input')) return;
+  var originalText = spanEl.dataset.originalText || spanEl.textContent;
+  var input = document.createElement('input');
+  input.type = 'text';
+  input.value = originalText;
+  input.className = 'inline-edit-input';
+  input.style.cssText = 'background:rgba(0,0,0,0.35);border:1px solid var(--accent-cyan);color:white;padding:3px 8px;border-radius:6px;font-size:13px;font-family:inherit;width:100%;min-width:80px;outline:none;';
+  spanEl.replaceWith(input);
+  input.focus();
+  input.select();
+
+  input.addEventListener('blur', function() {
+    finishInlineDescEdit(input, txId, originalText);
+  });
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { input.blur(); }
+    if (e.key === 'Escape') {
+      input.value = originalText;
+      input.blur();
+    }
+  });
+}
+
+function finishInlineDescEdit(input, txId, originalValue) {
+  var newValue = input.value.trim();
+  var span = document.createElement('span');
+  span.className = 'desc-text';
+  span.textContent = newValue || originalValue;
+  span.setAttribute('ondblclick', 'startInlineDescEdit(this, \'' + txId + '\')');
+  if (isPrivacyMode) {
+    span.dataset.originalText = newValue || originalValue;
+    span.textContent = '\u2022\u2022\u2022\u2022\u2022\u2022';
+    span.classList.add('privacy-masked');
+  }
+  input.replaceWith(span);
+
+  if (newValue && newValue !== originalValue) {
+    var tx = transactions.find(function(t) { return t.id === txId; });
+    if (tx) {
+      tx.description = newValue;
+      saveTransactionsToStorage();
+      patchTransaction(txId, { description: newValue });
+    }
+  }
+}
+
+function startInlineAmtEdit(spanEl, txId) {
+  if (spanEl.querySelector('input')) return;
+  var originalText = spanEl.dataset.originalText || spanEl.textContent;
+  var tx = transactions.find(function(t) { return t.id === txId; });
+  if (!tx) return;
+  var numericVal = tx.amount.toString();
+
+  var input = document.createElement('input');
+  input.type = 'text';
+  input.value = numericVal;
+  input.className = 'inline-edit-input';
+  input.style.cssText = 'background:rgba(0,0,0,0.35);border:1px solid var(--accent-cyan);color:white;padding:3px 8px;border-radius:6px;font-size:14px;font-family:var(--font-family-heading);font-weight:700;width:100%;min-width:80px;outline:none;text-align:left;';
+  spanEl.replaceWith(input);
+  input.focus();
+  input.select();
+
+  input.addEventListener('blur', function() {
+    finishInlineAmtEdit(input, txId, originalText, tx);
+  });
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { input.blur(); }
+    if (e.key === 'Escape') {
+      input.value = tx.amount.toString();
+      input.blur();
+    }
+  });
+}
+
+function finishInlineAmtEdit(input, txId, originalText, tx) {
+  var rawVal = input.value.replace(/,/g, '');
+  var amountVal = parseFloat(rawVal);
+  var isExpense = tx.type === 'expense';
+
+  if (isNaN(amountVal) || amountVal <= 0) {
+    triggerAnimeCustomQuote('\u4E3B\u4EBA\uFF5E\u91D1\u984D\u53EA\u80FD\u8F38\u5165\u6578\u5B57\u5594\uFF01\u8ACB\u91CD\u65B0\u8F38\u5165\uFF5E\uD83E\uDDD0');
+    var span = document.createElement('span');
+    span.className = 'amt-text ' + (isExpense ? 'expense-color' : 'income-color');
+    span.textContent = (isExpense ? '-' : '+') + '$' + tx.amount.toLocaleString();
+    span.setAttribute('ondblclick', 'startInlineAmtEdit(this, \'' + txId + '\')');
+    if (isPrivacyMode) {
+      span.dataset.originalText = span.textContent;
+      span.textContent = '\u2022\u2022\u2022\u2022\u2022\u2022';
+      span.classList.add('privacy-masked');
+    }
+    input.replaceWith(span);
+    return;
+  }
+
+  tx.amount = amountVal;
+  saveTransactionsToStorage();
+  patchTransaction(txId, { amount: amountVal });
+  updateDashboard();
+}
+
+// ==========================================================================
+// JSON Backup & Restore Engine
+// ==========================================================================
+function exportJSONBackup() {
+  var backup = {
+    version: '1.0',
+    exported_at: new Date().toISOString(),
+    data: {
+      transactions: transactions,
+      bank_accounts: bankAccounts,
+      loans: loans,
+      dynamic_options: dynamicOptions,
+      carrier: { barcode: carrierBarcode, pin: carrierPin }
+    }
+  };
+  var json = JSON.stringify(backup, null, 2);
+  var blob = new Blob([json], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'voice_finance_backup.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  triggerAnimeCustomQuote('\u5E33\u672C\u5099\u4EFD\u5DF2\u4E0B\u8F09\uFF01\u4E3B\u4EBA\u53EF\u4EE5\u628A\u9019\u500B JSON \u6A94\u6848\u5B89\u5168\u4FDD\u5B58\u8D77\u4F86\u5594\uFF5E\uD83D\uDCBE');
+}
+
+function importJSONBackup() {
+  var input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(evt) {
+      try {
+        var backup = JSON.parse(evt.target.result);
+        if (!backup.data) throw new Error('Invalid format');
+        var d = backup.data;
+        if (d.transactions) localStorage.setItem('voice_finance_transactions', JSON.stringify(d.transactions));
+        if (d.bank_accounts) localStorage.setItem('voice_finance_bank_accounts', JSON.stringify(d.bank_accounts));
+        if (d.loans) localStorage.setItem('voice_finance_loans', JSON.stringify(d.loans));
+        if (d.dynamic_options) localStorage.setItem('voice_finance_dynamic_options', JSON.stringify(d.dynamic_options));
+        if (d.carrier) localStorage.setItem('voice_finance_carrier', JSON.stringify(d.carrier));
+        triggerAnimeCustomQuote('\u5E33\u672C\u9084\u539F\u6210\u529F\uFF01\u9801\u9762\u5C07\u91CD\u65B0\u8F09\u5165\uFF5E\uD83D\uDD04');
+        setTimeout(function() { window.location.reload(); }, 1500);
+      } catch (err) {
+        triggerAnimeCustomQuote('\u4E3B\u4EBA\uFF5E\u9019\u500B\u6A94\u6848\u683C\u5F0F\u597D\u50CF\u4E0D\u5C0D\u5594\uFF01\u8ACB\u9078\u64C7\u6B63\u78BA\u7684\u5099\u4EFD\u6A94\u6848\uFF5E\uD83D\uDE05');
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
 // Backward-compatible reference wrappers
 function getSubCategories(cat) {
   return getDynamicOptions('sub', cat);
@@ -642,6 +876,30 @@ function bindUIEvents() {
   // Bank Account & Loan events
   document.getElementById('btn-add-account').addEventListener('click', addAccount);
   document.getElementById('btn-add-loan').addEventListener('click', addLoan);
+
+  // Privacy toggle
+  const privacyBtn = document.getElementById('privacy-toggle-btn');
+  if (privacyBtn) {
+    privacyBtn.addEventListener('click', togglePrivacyMode);
+  }
+
+  // CSV Export
+  const csvBtn = document.getElementById('btn-export-csv');
+  if (csvBtn) {
+    csvBtn.addEventListener('click', exportCSV);
+  }
+
+  // JSON Backup
+  const backupBtn = document.getElementById('btn-export-backup');
+  if (backupBtn) {
+    backupBtn.addEventListener('click', exportJSONBackup);
+  }
+
+  // JSON Restore
+  const restoreBtn = document.getElementById('btn-import-backup');
+  if (restoreBtn) {
+    restoreBtn.addEventListener('click', importJSONBackup);
+  }
 
   // Load saved carrier
   loadCarrierFromStorage();
@@ -952,7 +1210,7 @@ function updateDashboard() {
           </div>
         </td>
         <td>
-          <span class="desc-text">${t.description}</span>
+          <span class="desc-text" ondblclick="startInlineDescEdit(this, '${t.id}')">${t.description}</span>
           ${t.items && t.items.length > 0 ? `
             <div class="sub-items-row">
               ${t.items.map(item => `<span class="sub-item-tag">${escapeHtml(item)}</span>`).join('')}
@@ -970,7 +1228,7 @@ function updateDashboard() {
           </select>
         </td>
         <td>
-          <span class="amt-text ${isExpense ? 'expense-color' : 'income-color'}">
+          <span class="amt-text ${isExpense ? 'expense-color' : 'income-color'}" ondblclick="startInlineAmtEdit(this, '${t.id}')">
             ${isExpense ? '-' : '+'}$${t.amount.toLocaleString()}
           </span>
         </td>
@@ -1021,6 +1279,8 @@ function updateDashboard() {
   const budgetLabelEl = document.querySelector('.budget-label');
   const budgetLabels = { day: '本日預算使用率', week: '本週預算使用率', month: '本月預算使用率', year: '本年預算使用率' };
   if (budgetLabelEl) budgetLabelEl.innerText = budgetLabels[activePeriod] || '預算使用率';
+
+  if (isPrivacyMode) applyPrivacyMask();
 }
 
 // Dynamic SVG Doughnut Pie Chart generator
@@ -2005,6 +2265,7 @@ function renderAccountsPanel() {
     row.innerHTML = '<div class="account-info"><span class="material-icons-round account-type-icon">' + typeIcon + '</span><div><span class="account-name">' + escapeHtml(acc.name) + '</span><span class="account-type-badge">' + (acc.type === 'bank' ? '銀行' : acc.type === 'wallet' ? '錢包' : '現金') + '</span></div></div><div class="account-balance"><span class="balance-value" ondblclick="editAccountBalance(\'' + acc.id + '\')" title="雙擊編輯餘額">$' + acc.balance.toLocaleString() + '</span><button class="delete-action-btn" onclick="deleteAccount(\'' + acc.id + '\')"><span class="material-icons-round">delete_outline</span></button></div>';
     listEl.appendChild(row);
   });
+  if (isPrivacyMode) applyPrivacyMask();
 }
 
 function addAccount() {
@@ -2071,6 +2332,7 @@ function renderLoansPanel() {
     row.innerHTML = '<div class="loan-header"><span class="loan-name">' + escapeHtml(loan.name) + '</span><span class="loan-due">下期: ' + (loan.nextDueDate || '---') + '</span><button class="delete-action-btn" onclick="deleteLoan(\'' + loan.id + '\')"><span class="material-icons-round">delete_outline</span></button></div><div class="loan-bar-wrapper"><div class="loan-bar-track"><div class="loan-bar-fill" style="width:' + repaidPercent + '%;"></div></div><span class="loan-bar-label">' + repaidPercent + '% 已還</span></div><div class="loan-details"><span>總額: $' + loan.totalPrincipal.toLocaleString() + '</span><span>剩餘: $' + loan.remainingBalance.toLocaleString() + '</span><span>月付: $' + loan.monthlyPayment.toLocaleString() + '</span></div>' + repaidBtn;
     listEl.appendChild(row);
   });
+  if (isPrivacyMode) applyPrivacyMask();
 }
 
 function addLoan() {
