@@ -141,15 +141,69 @@ def mock_parse(text: str, current_date: str) -> dict:
         }
 
     amount = 100
-    currency_match = re.search(r'(\d+)\s*(萬|億)?\s*(元|塊)', text)
-    if currency_match:
-        base = float(currency_match.group(1))
-        multiplier = currency_match.group(2)
-        if multiplier == '萬':
-            base *= 10000
-        elif multiplier == '億':
-            base *= 100000000
-        amount = base
+    # Structural Chinese currency parser: additive accumulator with 億/萬/千/百/十
+    CN_DIGITS = {'一':1,'二':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'零':0}
+
+    def _cn_to_int(s):
+        s = s.strip()
+        if not s:
+            return 0
+        if s.isdigit():
+            return int(s)
+        result = 0
+        for ch in s:
+            if ch in CN_DIGITS:
+                result = result * 10 + CN_DIGITS[ch]
+            elif ch.isdigit():
+                result = result * 10 + int(ch)
+        return result
+
+    def _parse_segment(seg):
+        seg = seg.strip()
+        if not seg:
+            return 0
+        val = 0
+        m = re.search(r'([\d一二三四五六七八九]+)\s*千', seg)
+        if m:
+            val += _cn_to_int(m.group(1)) * 1000
+            seg = seg[m.end():]
+        m = re.search(r'([\d一二三四五六七八九]+)\s*百', seg)
+        if m:
+            val += _cn_to_int(m.group(1)) * 100
+            seg = seg[m.end():]
+        m = re.search(r'([\d一二三四五六七八九]+)\s*十', seg)
+        if m:
+            val += _cn_to_int(m.group(1)) * 10
+            seg = seg[m.end():]
+        seg = seg.strip()
+        if seg:
+            val += _cn_to_int(seg)
+        return val
+
+    cleaned = re.sub(r'[元塊]', '', text).strip()
+    total = 0
+
+    parts = cleaned.split('億')
+    if len(parts) > 1:
+        yi_seg = parts[0] if parts[0] else '1'
+        total += _parse_segment(yi_seg) * 100000000
+        cleaned = parts[1]
+    else:
+        cleaned = parts[0]
+
+    parts = cleaned.split('萬')
+    if len(parts) > 1:
+        wan_seg = parts[0] if parts[0] else '1'
+        total += _parse_segment(wan_seg) * 10000
+        cleaned = parts[1]
+    else:
+        cleaned = parts[0]
+
+    if cleaned.strip():
+        total += _parse_segment(cleaned)
+
+    if total > 0:
+        amount = float(total)
     else:
         if '一百二十' in text:
             amount = 120.0
@@ -183,10 +237,10 @@ def mock_parse(text: str, current_date: str) -> dict:
     if "油" in text:
         items.append("無鉛汽油")
 
-    if any(k in text for k in ["賺", "薪水", "收入", "薪資"]):
+    if any(k in text for k in ["賺", "薪水", "收入", "薪資", "中獎", "取得獎金", "發票中獎", "對中", "尾牙抽中", "樂透", "彩券", "刮刮樂"]):
         tx_type = "income"
         category = "薪資"
-        if "獎金" in text:
+        if any(k in text for k in ["中獎", "獎金", "對中", "尾牙抽中", "樂透", "彩券", "刮刮樂"]):
             category = "獎金"
         elif "投資" in text:
             category = "投資"
@@ -307,29 +361,37 @@ async def parse_voice(input: VoiceInput):
         "3. 萬/億轉換規則：若貨幣字串含「萬」或「億」，必須先做數學乘積再輸出。\n"
         "   例：「100萬元」→ amount: 100 * 10000 = 1000000。\n"
         "   「5億」→ amount: 5 * 100000000 = 500000000。\n"
+        "   「1億5000萬」→ amount: (1 * 100000000) + (5000 * 10000) = 150000000。\n"
+        "   「超過1億元」→ amount: 1 * 100000000 = 100000000。\n"
         "4. 若語句中完全沒有貨幣相關數字（無元/塊/萬/億），amount 設為 0。\n\n"
+        "=== 收支類型 (type) 強制分類規則 ===\n"
+        "5. 中獎/獎金收入規則：若語句含「中獎」、「取得獎金」、「發票中獎」、「對中」、「尾牙抽中」、「樂透」、「彩券」、「刮刮樂」等關鍵字，\n"
+        "   type 必須強制設為 'income'，category 設為 '獎金'。\n"
+        "   例：「中獎取得獎金5000元」→ type: 'income', category: '獎金', amount: 5000。\n"
+        "   例：「發票對中200元」→ type: 'income', category: '獎金', amount: 200。\n"
+        "   例：「尾牙抽中獎金3萬元」→ type: 'income', category: '獎金', amount: 30000。\n"
         "=== 其他欄位規則 ===\n"
-        "5. 台灣常見商家：如全聯、中油、大買家、家樂福、7-11、全家、康是美等，請標註於 merchant 欄位。\n"
-        "6. 付款方式 (payment_method)：必須精準歸類為 '現金'、'信用卡' 或 '電子支付' 之一（街口支付, Line Pay, 中油Pay, 悠遊卡等皆屬 '電子支付'）。\n"
-        "7. 日期 (date)：若提及「昨天」、「前天」、「大前天」，請用系統時間基準扣除對應天數算得具體日期。\n"
-        "8. 商品細項 (items)：若提及購買了多個具體物件（如鮮奶和麵包），請拆分為字串陣列放入 items 欄位，例如 ['鮮奶', '麵包']。若無具體商品，則傳回空陣列 []。\n\n"
+        "6. 台灣常見商家：如全聯、中油、大買家、家樂福、7-11、全家、康是美等，請標註於 merchant 欄位。\n"
+        "7. 付款方式 (payment_method)：必須精準歸類為 '現金'、'信用卡' 或 '電子支付' 之一（街口支付, Line Pay, 中油Pay, 悠遊卡等皆屬 '電子支付'）。\n"
+        "8. 日期 (date)：若提及「昨天」、「前天」、「大前天」，請用系統時間基準扣除對應天數算得具體日期。\n"
+        "9. 商品細項 (items)：若提及購買了多個具體物件（如鮮奶和麵包），請拆分為字串陣列放入 items 欄位，例如 ['鮮奶', '麵包']。若無具體商品，則傳回空陣列 []。\n\n"
         "=== 二級分類 (sub_category) 偵測規則 ===\n"
-        "9. 若 category 為 '餐飲食品'，請從語句中提取 sub_category：\n"
+        "10. 若 category 為 '餐飲食品'，請從語句中提取 sub_category：\n"
         "   - 含「早餐」→ sub_category: '早餐'\n"
         "   - 含「午餐」→ sub_category: '午餐'\n"
         "   - 含「晚餐」→ sub_category: '晚餐'\n"
         "   - 含「宵夜」或「消夜」→ sub_category: '宵夜'\n"
         "   - 含「飲料」、「喝」、「咖啡」、「茶」、「手搖」、「奶茶」→ sub_category: '飲料/零食'\n"
         "   - 無特定關鍵字時 → sub_category: '其他'\n"
-        "10. 若 category 為 '交通出行'，請從語句中提取 sub_category：\n"
+        "11. 若 category 為 '交通出行'，請從語句中提取 sub_category：\n"
         "   - 含「加油」或「中油」→ sub_category: '加油'\n"
         "   - 含「停車」→ sub_category: '停車'\n"
         "   - 含「捷運」、「公車」、「高鐵」、「火車」→ sub_category: '大眾運輸'\n"
         "   - 含「計程車」、「Uber」→ sub_category: '計程車'\n"
         "   - 無特定關鍵字時 → sub_category: '其他'\n"
-        "11. 其他 category 若無特定 L2 關鍵字，sub_category 預設為 '其他'。\n\n"
+        "12. 其他 category 若無特定 L2 關鍵字，sub_category 預設為 '其他'。\n\n"
         "=== 定期交易偵測規則 ===\n"
-        "12. 若語句含「每個月」、「每月」、「每週」、「固定」、「定期」等關鍵字：\n"
+        "13. 若語句含「每個月」、「每月」、「每週」、「固定」、「定期」等關鍵字：\n"
         "   - is_recurring 設為 true。\n"
         "   - recurring_frequency：'monthly'（每月）或 'weekly'（每週）。\n"
         "   - day_of_period：從語句中提取執行日期數字。\n"
