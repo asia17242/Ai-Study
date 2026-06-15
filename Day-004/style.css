@@ -422,19 +422,43 @@ body::after {
   font-weight: 600;
 }
 
-/* 備註提醒 */
-.card-tips {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  padding-top: 10px;
+/* 備註提醒與警語 */
+.card-subtitle {
+  font-size: 0.9rem;
+  color: var(--accent-cyan);
+  font-weight: 500;
+  margin-top: 2px;
 }
 
-.tip-icon {
-  margin-top: 1px;
+.card-tip-text {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  background: rgba(0, 0, 0, 0.15);
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.card-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #fb7185;
+  background: rgba(244, 63, 94, 0.08);
+  border: 1px solid rgba(244, 63, 94, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+}
+
+.tip-icon, .warning-icon {
+  flex-shrink: 0;
+  font-size: 1rem;
 }
 
 /* 無結果狀態 */
