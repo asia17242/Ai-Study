@@ -83,7 +83,7 @@ const rules = [
   }
 ];
 
-// 3. 使用者擁有的皮夾卡片 (預設常用三張神卡全開)
+// 3. 使用者擁有的皮夾卡片 (預設常用神卡全開)
 const userWallet = ["中油Pay 聯名卡", "國泰世華 CUBE 卡", "台新銀行 GoGo 卡", "台新銀行 FlyGo 卡"];
 
 // 4. 監聽輸入框
@@ -96,7 +96,6 @@ function quickSearch(name) {
   document.getElementById('searchInput').value = name;
   searchMerchant(name);
 }
-window.quickSearch = quickSearch;
 
 // 5. 核心搜尋與排序演算法
 function searchMerchant(query) {
@@ -104,23 +103,18 @@ function searchMerchant(query) {
   const resultContainer = document.getElementById('resultContainer');
 
   if (!cleanQuery) {
-    resultContainer.innerHTML = `
-      <div class="placeholder-card">
-        <span class="placeholder-icon">💡</span>
-        <p class="placeholder-text">請在上方輸入或點選商場查看最優支付</p>
-      </div>
-    `;
+    resultContainer.innerHTML = '<p class="placeholder-text">💡 請在上方輸入或點選商場查看最優支付</p>';
     return;
   }
 
   // 模糊搜尋名稱與別名
-  const matchedMerchant = merchants.find(m =>
-    m.name.toLowerCase().includes(cleanQuery) ||
+  const matchedMerchant = merchants.find(m => 
+    m.name.toLowerCase().includes(cleanQuery) || 
     m.aliases.some(alias => alias.includes(cleanQuery))
   );
 
   if (!matchedMerchant) {
-    resultContainer.innerHTML = '<p class="error-text">找不到該商場，目前支援：中油、全聯、7-11、全家、寶雅、康是美、外送、家樂福</p>';
+    resultContainer.innerHTML = '<p class="error-text">❌ 找不到該商場，目前支援：中油、全聯、7-11、全家、寶雅、康是美、外送、家樂福</p>';
     return;
   }
 
@@ -135,14 +129,14 @@ function searchMerchant(query) {
 // 6. 渲染結果到 HTML 畫面上
 function renderResults(merchantName, matchedRules) {
   const resultContainer = document.getElementById('resultContainer');
-
+  
   if (matchedRules.length === 0) {
-    resultContainer.innerHTML = `<h2>${escapeHtml(merchantName)}</h2><p class="placeholder-text">您的皮夾卡片目前在此通路無特定優化回饋，建議使用一般無腦刷卡片。</p>`;
+    resultContainer.innerHTML = `<h2>🎉 ${merchantName}</h2><p class="placeholder-text">⚠️ 您的皮夾卡片目前在此通路無特定優化回饋，建議使用一般無腦刷卡片。</p>`;
     return;
   }
 
-  let html = `<h2>${escapeHtml(merchantName)} 最強支付排序：</h2>`;
-
+  let html = `<h2>🎉 ${merchantName} 最強支付排序：</h2>`;
+  
   matchedRules.forEach((rule, index) => {
     const medal = index === 0 ? "🥇 第一推薦" : index === 1 ? "🥈 第二推薦" : "🥉 第三推薦";
     html += `
@@ -152,24 +146,14 @@ function renderResults(merchantName, matchedRules) {
           <span class="rate">${rule.rate}% 回饋</span>
         </div>
         <div class="card-body">
-          <p><strong>使用工具：</strong> ${escapeHtml(rule.method)}</p>
-          <p><strong>搭配卡片：</strong> ${escapeHtml(rule.cardName)}</p>
-          <p class="tip">💡 攻略：${escapeHtml(rule.tip)}</p>
-          <p class="warning">⚠️ 防呆：${escapeHtml(rule.warning)}</p>
+          <p><strong>使用工具：</strong> ${rule.method}</p>
+          <p><strong>搭配卡片：</strong> ${rule.cardName}</p>
+          <p class="tip">💡 攻略：${rule.tip}</p>
+          <p class="warning">⚠️ 防呆：${rule.warning}</p>
         </div>
       </div>
     `;
   });
-
+  
   resultContainer.innerHTML = html;
-}
-
-// 防範 XSS 注入
-function escapeHtml(str) {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
 }
