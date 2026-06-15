@@ -60,6 +60,13 @@ const animeAssistantQuotes = {
     "哇！主人今天又一筆還款成功囉！看到負債進度條持續縮短，本助理真的太佩服你的毅力了！我們離無債一身輕又更近一步了！🎉",
     "貸款還款已記錄！主人你是本助理見過最自律的理財達人，債務進度條又往前衝了一截！💪",
     "鏘鏘！又一筆還款入帳～負債正以肉眼可見的速度消失中，太感動了！😭✨"
+  ],
+  onProactiveBudget: [
+    "主人！本月預計還有固定貸款與排程費用即將扣款，我們目前的實際可用預算要扣掉這些哦，錢包記得捏緊一點點！(盯—) 🧊",
+    "咳咳…主人，本月的定期支出總計約 $RECURRING_AMOUNT 元，別忘了留預算給它們喔！不然月底就只能吃土了～😅",
+    "警報警報！本助理偵測到本月還有一堆固定的繳費排程，主人請務必把這些算進生活開銷裡呀！💰",
+    "（翻帳本）主人～這個月還有幾筆固定的支出要繳呢，加起來差不多 $RECURRING_AMOUNT 元，別說我沒提醒你喔！😼",
+    "主人！你確定這個月亂買東西前，有先把電信費跟貸款的預算留下來嗎？本助理幫你算了一下～約 $RECURRING_AMOUNT 元！🛡️"
   ]
 };
 
@@ -621,6 +628,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderAccountsPanel();
   renderLoansPanel();
   checkAutoRepayments();
+  checkRecurringWarnings();
 });
 
 // Load transactions from localStorage
@@ -830,6 +838,9 @@ function bindUIEvents() {
       pill.classList.add('active');
       activePeriod = pill.dataset.period;
       updateDashboard();
+      if (activePeriod === 'month') {
+        checkRecurringWarnings();
+      }
       triggerAnimeQuote('onPeriodToggled');
     });
   });
@@ -2392,4 +2403,38 @@ function checkAutoRepayments() {
     renderLoansPanel();
     triggerAnimeCustomQuote(animeAssistantQuotes.onLoanRepayment[Math.floor(Math.random() * animeAssistantQuotes.onLoanRepayment.length)]);
   }
+}
+
+function checkRecurringWarnings() {
+  var now = new Date();
+  var currentMonth = now.getMonth();
+  var currentYear = now.getFullYear();
+
+  var monthlyRecurring = transactions.filter(function(t) {
+    if (!t.isRecurring) return false;
+    var start = new Date(t.startDate + 'T00:00:00');
+    var end = t.endDate ? new Date(t.endDate + 'T00:00:00') : null;
+    if (now < start) return false;
+    if (end && now > end) return false;
+    return true;
+  });
+
+  if (monthlyRecurring.length === 0) return;
+
+  var monthlyTotal = monthlyRecurring.reduce(function(sum, t) { return sum + t.amount; }, 0);
+  var recurringNames = monthlyRecurring.map(function(t) {
+    return t.description || t.category;
+  }).filter(function(v, i, a) { return a.indexOf(v) === i; });
+
+  var quotes = animeAssistantQuotes.onProactiveBudget;
+  var quote = quotes[Math.floor(Math.random() * quotes.length)];
+  quote = quote.replace('$RECURRING_AMOUNT', '$' + monthlyTotal.toLocaleString());
+
+  if (recurringNames.length > 0 && recurringNames.length <= 3) {
+    quote = quote.replace('固定貸款與排程費用', recurringNames.join('、'));
+  }
+
+  setTimeout(function() {
+    triggerAnimeCustomQuote(quote);
+  }, 2500);
 }

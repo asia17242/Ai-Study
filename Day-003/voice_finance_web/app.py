@@ -91,8 +91,130 @@ else:
             mock_mode = True
             client_type = "mock"
 
+# ==========================================================================
+# STT Speech Noise Filtering & Code-Switching Normalization
+# ==========================================================================
+STT_NOISE_PARTICLES = [
+    (r'[啦啊厚捏]$', ''),           # trailing colloquial particles
+    (r'那個\s*', ''),                # filler word
+    (r'嗯\s*', ''),                 # hesitation
+    (r'[欸唉誒]\s*', ''),           # interjections
+]
+
+PHONETIC_PAYMENT_MAP = {
+    '賴ㄆㄟ': 'LINE Pay',
+    'Line Pay': 'LINE Pay',
+    'line pay': 'LINE Pay',
+    '阿法ㄆㄟ': 'Apple Pay',
+    'Apple Pay': 'Apple Pay',
+    'apple pay': 'Apple Pay',
+}
+
+TELECOM_FIX_MAP = {
+    '亞太': '亞太電信門號費',
+    '亞太電信': '亞太電信門號費',
+}
+
+def normalize_speech_text(text: str) -> str:
+    result = text.strip()
+    for pattern, replacement in STT_NOISE_PARTICLES:
+        result = re.sub(pattern, replacement, result)
+    for phonetic, standard in PHONETIC_PAYMENT_MAP.items():
+        result = result.replace(phonetic, standard)
+    for telecom_key, telecom_value in TELECOM_FIX_MAP.items():
+        result = re.sub(r'(?<!\S)' + re.escape(telecom_key) + r'(?!\S)', telecom_value, result)
+    return result.strip()
+
+# ==========================================================================
+# Taiwan High-Frequency Vendor Auto-Mapping Engine
+# ==========================================================================
+TAIWAN_VENDOR_MAP = [
+    {
+        "keywords": ["全聯", "全聯福利中心"],
+        "category": "日常用品",
+        "sub_category": "雜貨",
+        "payment_method": "全支付",
+    },
+    {
+        "keywords": ["大買家"],
+        "category": "日常用品",
+        "sub_category": "生鮮量販",
+    },
+    {
+        "keywords": ["中油", "台灣中油", "中油Pay"],
+        "category": "交通出行",
+        "sub_category": "加油",
+        "payment_method": "中油Pay",
+    },
+    {
+        "keywords": ["好市多", "Costco", "costco"],
+        "category": "日常用品",
+        "sub_category": "量販賣場",
+    },
+    {
+        "keywords": ["家樂福"],
+        "category": "日常用品",
+        "sub_category": "量販賣場",
+    },
+    {
+        "keywords": ["7-11", "統一超商", "小七"],
+        "category": "餐飲食品",
+        "sub_category": "便利商店",
+    },
+    {
+        "keywords": ["全家", "全家便利商店"],
+        "category": "餐飲食品",
+        "sub_category": "便利商店",
+    },
+    {
+        "keywords": ["康是美", "屈臣氏"],
+        "category": "日常用品",
+        "sub_category": "藥妝",
+    },
+    {
+        "keywords": ["麥當勞", "肯德基", "摩斯漢堡", "漢堡王"],
+        "category": "餐飲食品",
+        "sub_category": "速食",
+    },
+    {
+        "keywords": ["星巴克", "路易莎", "cama"],
+        "category": "餐飲食品",
+        "sub_category": "飲料/零食",
+    },
+    {
+        "keywords": ["蝦皮", "PChome", "momo", "淘寶"],
+        "category": "日常用品",
+        "sub_category": "網購",
+    },
+    {
+        "keywords": ["威秀", "秀泰", "電影院"],
+        "category": "娛樂消費",
+        "sub_category": "電影",
+    },
+]
+
+def apply_vendor_mapping(parsed: dict, raw_text: str) -> dict:
+    result = dict(parsed)
+    text_lower = raw_text.lower()
+    for vendor in TAIWAN_VENDOR_MAP:
+        if any(kw in raw_text or kw in text_lower for kw in vendor["keywords"]):
+            if "category" in vendor:
+                result["category"] = vendor["category"]
+            if "sub_category" in vendor:
+                result["sub_category"] = vendor["sub_category"]
+            if "payment_method" in vendor:
+                result["payment_method"] = vendor["payment_method"]
+            if any(kw in raw_text for kw in vendor["keywords"]):
+                result["merchant"] = vendor["keywords"][0]
+            break
+    return result
+
 def mock_parse(text: str, current_date: str) -> dict:
     """Fallback parser for local testing without Gemini API Key."""
+    # Stage 0: STT noise filtering & code-switching normalization
+    original_text = text
+    text = normalize_speech_text(text)
+
     # Handle Bidirectional AI Retrieval Queries
     if "上個月手搖飲" in text or "手搖飲總共花多少錢" in text:
         return {
@@ -326,7 +448,7 @@ def mock_parse(text: str, current_date: str) -> dict:
     elif "明天" in text:
         tx_date = base_date + datetime.timedelta(days=1)
 
-    return {
+    parsed = {
         "amount": amount,
         "category": category,
         "description": text,
@@ -340,11 +462,17 @@ def mock_parse(text: str, current_date: str) -> dict:
         "day_of_period": day_of_period,
         "recurring_frequency": recurring_frequency
     }
+    # Stage N: Apply Taiwan vendor auto-mapping override
+    parsed = apply_vendor_mapping(parsed, original_text)
+    return parsed
 
 @app.post("/api/parse", response_model=TransactionResponse)
 async def parse_voice(input: VoiceInput):
+    # Stage 0: Normalize STT noise and code-switching before parsing
+    normalized_text = normalize_speech_text(input.text)
+
     if client_type == "mock" or mock_mode:
-        print(f"[MOCK] Parsing input: '{input.text}' (baseline: {input.current_date})")
+        print(f"[MOCK] Parsing input: '{normalized_text}' (original: '{input.text}', baseline: {input.current_date})")
         parsed = mock_parse(input.text, input.current_date)
         return TransactionResponse(**parsed)
     
@@ -352,6 +480,11 @@ async def parse_voice(input: VoiceInput):
         "你是一個專業的財務記帳分析師，專門負責將口語或語音文字轉換為結構化記帳 JSON。\n"
         f"當前系統時間基準為（current_date）：{input.current_date}。\n"
         "請精確解析出交易金額、類別、備註、收支類型、交易日期、商家名稱、付款方式，並提取具體商品項目放入 items 陣列。\n\n"
+        "=== 台灣語音 STT 語句除噪規則 ===\n"
+        "輸入文本可能包含台灣口語中的填充詞（啦、啊、那個、厚、捏），請自動忽略這些語助詞，專注於擷取核心交易資訊。\n"
+        "電子支付語音辨識修正：若出現「賴ㄆㄟ」或「Line Pay」，統一解析為 payment_method: 'LINE Pay'。\n"
+        "若出現「阿法ㄆㄟ」或「Apple Pay」，統一解析為 payment_method: 'Apple Pay'。\n"
+        "電信名稱修正：若出現「亞太」或「亞太電信」，description 欄位應自動補全為「亞太電信門號費」。\n\n"
         "=== 金額萃取嚴格規則（Taiwan NER）===\n"
         "1. 貨幣錨點規則：金額 amount 必須提取緊鄰於「元」或「塊」之前的數字。\n"
         "   例：「電話支出1500元」→ amount: 1500。「花了800塊」→ amount: 800。\n"
@@ -371,8 +504,21 @@ async def parse_voice(input: VoiceInput):
         "   例：「發票對中200元」→ type: 'income', category: '獎金', amount: 200。\n"
         "   例：「尾牙抽中獎金3萬元」→ type: 'income', category: '獎金', amount: 30000。\n"
         "=== 其他欄位規則 ===\n"
-        "6. 台灣常見商家：如全聯、中油、大買家、家樂福、7-11、全家、康是美等，請標註於 merchant 欄位。\n"
-        "7. 付款方式 (payment_method)：必須精準歸類為 '現金'、'信用卡' 或 '電子支付' 之一（街口支付, Line Pay, 中油Pay, 悠遊卡等皆屬 '電子支付'）。\n"
+        "6. 台灣商家智慧識別地圖：\n"
+        "   - 「全聯」或「全聯福利中心」→ category: '日常用品', sub_category: '雜貨', payment_method: '全支付'\n"
+        "   - 「大買家」→ category: '日常用品', sub_category: '生鮮量販'\n"
+        "   - 「中油」、「台灣中油」或「中油Pay」→ category: '交通出行', sub_category: '加油', payment_method: '中油Pay'\n"
+        "   - 「好市多」、「Costco」→ category: '日常用品', sub_category: '量販賣場'\n"
+        "   - 「家樂福」→ category: '日常用品', sub_category: '量販賣場'\n"
+        "   - 「7-11」、「統一超商」、「小七」→ category: '餐飲食品', sub_category: '便利商店'\n"
+        "   - 「全家」、「全家便利商店」→ category: '餐飲食品', sub_category: '便利商店'\n"
+        "   - 「康是美」、「屈臣氏」→ category: '日常用品', sub_category: '藥妝'\n"
+        "   - 「麥當勞」、「肯德基」、「摩斯漢堡」、「漢堡王」→ category: '餐飲食品', sub_category: '速食'\n"
+        "   - 「星巴克」、「路易莎」、「cama」→ category: '餐飲食品', sub_category: '飲料/零食'\n"
+        "   - 「蝦皮」、「PChome」、「momo」、「淘寶」→ category: '日常用品', sub_category: '網購'\n"
+        "   - 「威秀」、「秀泰」、「電影院」→ category: '娛樂消費', sub_category: '電影'\n"
+        "7. 付款方式 (payment_method)：若自動識別到的工具名稱（如「中油Pay」、「全支付」）已在用戶的帳戶系統中有對應帳戶，請直接填入該工具名稱。\n"
+        "   其他常見電子支付：LINE Pay, Apple Pay, 街口支付, 中油Pay, 全支付, 悠遊卡，請填入對應名稱。\n"
         "8. 日期 (date)：若提及「昨天」、「前天」、「大前天」，請用系統時間基準扣除對應天數算得具體日期。\n"
         "9. 商品細項 (items)：若提及購買了多個具體物件（如鮮奶和麵包），請拆分為字串陣列放入 items 欄位，例如 ['鮮奶', '麵包']。若無具體商品，則傳回空陣列 []。\n\n"
         "=== 二級分類 (sub_category) 偵測規則 ===\n"
@@ -403,12 +549,12 @@ async def parse_voice(input: VoiceInput):
     )
 
     if client_type == "new":
-        print(f"[GEMINI NEW SDK] Parsing input: '{input.text}' (baseline: {input.current_date})")
+        print(f"[GEMINI NEW SDK] Parsing normalized: '{normalized_text}' (original: '{input.text}', baseline: {input.current_date})")
         try:
             from google.genai import types
             response = client.models.generate_content(
                 model=model_name,
-                contents=input.text,
+                contents=normalized_text,
                 config=types.GenerateContentConfig(
                     system_instruction=system_instruction,
                     response_mime_type="application/json",
@@ -421,14 +567,16 @@ async def parse_voice(input: VoiceInput):
                 raw_text = re.sub(r"^```(json)?\n", "", raw_text)
                 raw_text = re.sub(r"\n```$", "", raw_text)
             parsed_data = json.loads(raw_text)
-            return TransactionResponse(**parsed_data)
+            # Apply vendor mapping post-Gemini parse for consistency
+            parsed_dict = apply_vendor_mapping(dict(parsed_data), input.text)
+            return TransactionResponse(**parsed_dict)
         except Exception as e:
             print(f"[ERROR] New SDK parse failed: {e}. Falling back to mock...")
             parsed = mock_parse(input.text, input.current_date)
             return TransactionResponse(**parsed)
             
     elif client_type == "legacy":
-        print(f"[GEMINI LEGACY SDK] Parsing input: '{input.text}' (baseline: {input.current_date})")
+        print(f"[GEMINI LEGACY SDK] Parsing normalized: '{normalized_text}' (original: '{input.text}', baseline: {input.current_date})")
         try:
             import google.generativeai as legacy_genai
             generation_config = {
@@ -438,7 +586,7 @@ async def parse_voice(input: VoiceInput):
             
             prompt_content = (
                 f"系統指令：\n{system_instruction}\n\n"
-                f"請分析以下文字並回傳 JSON：\n{input.text}"
+                f"請分析以下文字並回傳 JSON：\n{normalized_text}"
             )
             
             response = legacy_model.generate_content(
@@ -455,13 +603,19 @@ async def parse_voice(input: VoiceInput):
             normalized = {
                 "amount": float(parsed_data.get("amount", 0)),
                 "category": parsed_data.get("category", "其他"),
-                "description": parsed_data.get("description", parsed_data.get("description", input.text)),
+                "description": parsed_data.get("description", parsed_data.get("description", normalized_text)),
                 "type": parsed_data.get("type", "expense"),
                 "date": parsed_data.get("date", input.current_date),
                 "merchant": parsed_data.get("merchant", "未知"),
                 "payment_method": parsed_data.get("payment_method", "現金"),
-                "items": parsed_data.get("items", [])
+                "items": parsed_data.get("items", []),
+                "sub_category": parsed_data.get("sub_category", "其他"),
+                "is_recurring": parsed_data.get("is_recurring", False),
+                "day_of_period": parsed_data.get("day_of_period"),
+                "recurring_frequency": parsed_data.get("recurring_frequency")
             }
+            # Apply vendor mapping post-legacy parse
+            normalized = apply_vendor_mapping(normalized, input.text)
             return TransactionResponse(**normalized)
         except Exception as e:
             print(f"[ERROR] Legacy SDK parse failed: {e}. Falling back to mock...")
