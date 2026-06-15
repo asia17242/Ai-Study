@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>台灣結帳神算子 - 3秒算出中油、全聯與超商最強支付公式</title>
+  <meta name="description" content="專為台灣消費者設計的「結帳防呆與支付最佳化」輕量網頁。免下載、免註冊、零個資搜集，3秒內算出台灣中油、全聯福利中心、超商等通路的最佳行動支付與刷卡公式。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <header class="app-header">
+      <h1>🔍 台灣結帳神算子</h1>
+      <p class="subtitle">3秒找出最強支付，告別結帳焦慮</p>
+    </header>
+
+    <main class="app-body">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="輸入店名，如：全聯、中油、7-11、全家、家樂福...">
+        <button id="clearInput" class="clear-btn" aria-label="清除輸入">&times;</button>
+      </div>
+
+      <div class="quick-buttons">
+        <button onclick="quickSearch('台灣中油')">⛽ 台灣中油</button>
+        <button onclick="quickSearch('全聯福利中心')">🛒 全聯福利中心</button>
+      </div>
+
+      <div id="resultContainer" class="result-container">
+        <div class="placeholder-card">
+          <span class="placeholder-icon">💡</span>
+          <p class="placeholder-text">請在上方輸入或點選商場查看最優支付</p>
+        </div>
+      </div>
+    </main>
+
+    <footer class="disclaimer">
+      <p>本站優惠資訊僅供參考，實際回饋以各銀行與支付平台公告為準。</p>
+      <p>資料最後更新：2026/06/15</p>
+    </footer>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>

@@ -1,0 +1,543 @@
+/* 台灣結帳神算子 - 全球頂級設計系統 */
+
+:root {
+  --bg-gradient: radial-gradient(circle at 50% 10%, #151e36 0%, #060912 80%);
+  --card-bg: rgba(20, 27, 47, 0.7);
+  --card-bg-hover: rgba(28, 38, 65, 0.85);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-border-focus: rgba(56, 189, 248, 0.4);
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #64748b;
+  
+  --color-gold: #fbbf24;
+  --color-silver: #cbd5e1;
+  --color-bronze: #cd7f32;
+  
+  /* 支付與回饋等級色彩 */
+  --glow-high: rgba(16, 185, 129, 0.25); /* 綠色光芒 (>=5%) */
+  --glow-medium: rgba(56, 189, 248, 0.25); /* 藍色光芒 (3% - 4.9%) */
+  --glow-low: rgba(148, 163, 184, 0.15); /* 灰色光芒 (<3%) */
+  
+  --accent-cyan: #06b6d4;
+  --accent-purple: #8b5cf6;
+  --accent-emerald: #10b981;
+  
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+  
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --font-family: 'Outfit', 'Noto Sans TC', sans-serif;
+  --shadow-glow: 0 0 20px rgba(6, 182, 212, 0.15);
+}
+
+/* 基礎重設 */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background: var(--bg-gradient);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* 背景裝飾光點 */
+body::before, body::after {
+  content: '';
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  border-radius: var(--radius-full);
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(120px);
+  opacity: 0.2;
+}
+
+body::before {
+  background: var(--accent-cyan);
+  top: 10%;
+  left: 5%;
+}
+
+body::after {
+  background: var(--accent-purple);
+  bottom: 10%;
+  right: 5%;
+}
+
+/* 主容器 */
+.app-container {
+  width: 100%;
+  max-width: 580px;
+  background: rgba(13, 19, 35, 0.6);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  padding: 40px 30px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3),
+              inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  animation: appAppear 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 標頭設計 */
+.app-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.app-header h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #ffffff 30%, #a5b4fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.subtitle {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 300;
+  letter-spacing: 0.5px;
+}
+
+/* 搜尋區塊 */
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: rgba(8, 12, 24, 0.8);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  transition: var(--transition);
+}
+
+.search-box:focus-within {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.3),
+              inset 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.search-box input {
+  width: 100%;
+  padding: 16px 20px;
+  padding-right: 50px;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  font-family: var(--font-family);
+}
+
+.search-box input::placeholder {
+  color: var(--text-muted);
+  font-weight: 300;
+}
+
+/* 清除按鈕 */
+.clear-btn {
+  position: absolute;
+  right: 16px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.6rem;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  transition: var(--transition);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.clear-btn.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.clear-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* 快速搜尋按鈕 */
+.quick-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.quick-buttons button {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-secondary);
+  padding: 10px 18px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.quick-buttons button:hover {
+  background: var(--card-bg-hover);
+  color: var(--text-primary);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.quick-buttons button:active {
+  transform: translateY(0);
+}
+
+/* 結果容器 */
+.result-container {
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 初始提示狀態 */
+.placeholder-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  height: 200px;
+  border: 2px dashed rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  text-align: center;
+  padding: 20px;
+}
+
+.placeholder-icon {
+  font-size: 2.2rem;
+  opacity: 0.6;
+  animation: float 3s ease-in-out infinite;
+}
+
+.placeholder-text {
+  font-size: 0.95rem;
+  max-width: 280px;
+  line-height: 1.5;
+}
+
+/* 商店標題與卡片結構 */
+.store-result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  animation: slideUp 0.4s ease-out;
+}
+
+.store-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.store-category {
+  font-size: 0.8rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  color: var(--text-muted);
+}
+
+/* 方案卡片 */
+.payment-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: relative;
+  transition: var(--transition);
+  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  overflow: hidden;
+}
+
+.payment-card:hover {
+  background: var(--card-bg-hover);
+  transform: translateY(-3px);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* 金銀銅牌回饋等級標記 */
+.payment-card.rank-0 {
+  border-left: 4px solid var(--color-gold);
+  box-shadow: inset 8px 0 20px -8px rgba(251, 191, 36, 0.15);
+}
+
+.payment-card.rank-1 {
+  border-left: 4px solid var(--color-silver);
+  box-shadow: inset 8px 0 20px -8px rgba(203, 213, 225, 0.1);
+}
+
+.payment-card.rank-2 {
+  border-left: 4px solid var(--color-bronze);
+}
+
+/* 卡片排版 */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.card-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.card-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  width: fit-content;
+}
+
+.card-badge.gold {
+  background: rgba(251, 191, 36, 0.15);
+  color: var(--color-gold);
+}
+
+.card-badge.silver {
+  background: rgba(203, 213, 225, 0.15);
+  color: var(--color-silver);
+}
+
+.card-badge.normal {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+}
+
+.card-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* 回饋趴數圓形/方形標誌 */
+.reward-badge {
+  background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-purple) 100%);
+  color: #ffffff;
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 1.1rem;
+  white-space: nowrap;
+  box-shadow: 0 4px 15px rgba(6, 182, 212, 0.25);
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
+}
+
+/* 高額回饋特別霓虹化 */
+.payment-card.high-reward .reward-badge {
+  background: linear-gradient(135deg, #00ff87 0%, #60efff 100%);
+  color: #041209;
+  box-shadow: 0 4px 20px rgba(0, 255, 135, 0.35);
+}
+
+.reward-pct {
+  font-size: 1.4rem;
+}
+
+.reward-unit {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+/* 公式/步驟 */
+.formula-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.15);
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.step-item {
+  display: flex;
+  gap: 8px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--text-secondary);
+}
+
+.step-num {
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+/* 備註提醒 */
+.card-tips {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 10px;
+}
+
+.tip-icon {
+  margin-top: 1px;
+}
+
+/* 無結果狀態 */
+.no-result-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 20px;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.no-result-icon {
+  font-size: 2rem;
+}
+
+.no-result-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.no-result-text {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  max-width: 250px;
+  line-height: 1.4;
+}
+
+/* 免責聲明 */
+.disclaimer {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 18px;
+}
+
+/* 動畫細節 */
+@keyframes appAppear {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* 響應式微調 */
+@media (max-width: 480px) {
+  body {
+    padding: 10px;
+  }
+  .app-container {
+    padding: 24px 16px;
+    gap: 20px;
+  }
+  .app-header h1 {
+    font-size: 1.8rem;
+  }
+  .search-box input {
+    font-size: 1rem;
+    padding: 14px 16px;
+    padding-right: 44px;
+  }
+  .quick-buttons button {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+  }
+  .payment-card {
+    padding: 16px;
+  }
+  .reward-badge {
+    padding: 6px 10px;
+    font-size: 0.95rem;
+  }
+  .reward-pct {
+    font-size: 1.2rem;
+  }
+}
