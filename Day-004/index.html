@@ -3,44 +3,69 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>台灣結帳神算子 - 3秒算出中油、全聯與超商最強支付公式</title>
-  <meta name="description" content="專為台灣消費者設計的「結帳防呆與支付最佳化」輕量網頁。免下載、免註冊、零個資搜集，3秒內算出台灣中油、全聯福利中心、超商等通路的最佳行動支付與刷卡公式。">
+  <title>台灣結帳神算子 │ CYBER_PAY</title>
+  <!-- Google Fonts: Rajdhani (Cyberpunk feeling) and Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div class="app-container">
-    <header class="app-header">
-      <h1>🔍 台灣結帳神算子</h1>
-      <p class="subtitle">3秒找出最強支付，告別結帳焦慮</p>
-    </header>
+  <!-- Cyber grid overlay background -->
+  <div class="cyber-grid"></div>
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
 
-    <main class="app-body">
+  <!-- Wraps the app content for centering and styling -->
+  <div class="forest-wrapper">
+    <div class="app-container">
+      
+      <header class="cyber-header">
+        <div class="header-title-wrap">
+          <span class="cyber-glitch-tag">SYS_ONLINE</span>
+          <h1>台灣結帳神算子</h1>
+        </div>
+        <p class="subtitle">⚡ CODE: 3-SEC_OPTIMIZER // 演算最佳支付協議</p>
+      </header>
+
       <div class="search-box">
-        <input type="text" id="searchInput" placeholder="輸入店名，如：全聯、中油、7-11、全家、家樂福...">
-        <button id="clearInput" class="clear-btn" aria-label="清除輸入">&times;</button>
+        <input type="text" id="searchInput" placeholder="🔍 輸入商場名稱或關鍵字 (例如：全聯、中油、7-11)...">
       </div>
 
-      <div class="quick-buttons">
-        <button onclick="quickSearch('台灣中油')">⛽ 台灣中油</button>
-        <button onclick="quickSearch('全聯福利中心')">🛒 全聯福利中心</button>
+      <div class="shortcut-section">
+        <div class="shortcut-title-bar">
+          <span class="cyber-label">⚡ 常用核心快捷紐 (MAX_4)</span>
+          <button id="openConfigBtn" class="config-btn">⚙️ 改寫矩陣</button>
+        </div>
+        <div id="quickButtonsContainer" class="quick-buttons">
+          <!-- Dynamically populated -->
+        </div>
       </div>
 
       <div id="resultContainer" class="result-container">
-        <div class="placeholder-card">
-          <span class="placeholder-icon">💡</span>
-          <p class="placeholder-text">請在上方輸入或點選商場查看最優支付</p>
-        </div>
+        <p class="placeholder-text">⚡ 點擊上方數據節點，或輸入通路名稱激活 AI 核心演算...</p>
       </div>
-    </main>
 
-    <footer class="disclaimer">
-      <p>本站優惠資訊僅供參考，實際回饋以各銀行與支付平台公告為準。</p>
-      <p>資料最後更新：2026/06/15</p>
-    </footer>
+      <footer class="disclaimer">
+        [DATA_REF] 本終端優惠數據僅供參考，最終協議以各銀行與支付平台主機為準。<br>
+        MATRIX_REVISION: 2026.06.16 // STABLE_VER
+      </footer>
+    </div>
+  </div>
+
+  <!-- Config Modal Dialog -->
+  <div id="configModal" class="modal-overlay">
+    <div class="modal-content cyber-modal-card">
+      <h3>⚙️ 矩陣通路改寫 (最多4個)</h3>
+      <p class="modal-subtitle">勾選的節點將會動態掛載至主畫面終端快捷列</p>
+      <div id="merchantCheckboxGroup" class="checkbox-group">
+        <!-- Dynamically populated -->
+      </div>
+      <div class="modal-actions">
+        <button id="saveConfigBtn" class="save-btn">💾 寫入核心韌體 (保存)</button>
+      </div>
+    </div>
   </div>
 
   <script src="main.js"></script>
