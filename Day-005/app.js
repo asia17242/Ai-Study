@@ -9,8 +9,8 @@ const TEMPLE_DATA = [
     "tag": ["求平安", "賞古蹟"],
     "history": "台中市最古老廟宇（建於清康熙），國家三級古蹟。以「老二媽回娘家」與「字姓戲」聞名。",
     "surrounding": "南屯老街（犁頭店）、百年打鐵舖、夏季限定特產「麻芛湯」。",
-    "x": 380,
-    "y": 320
+    "lat": 24.1365,
+    "lng": 120.6464
   },
   {
     "id": "tc-02",
@@ -21,8 +21,8 @@ const TEMPLE_DATA = [
     "tag": ["求平安", "求姻緣", "賞古蹟"],
     "history": "超過200年歷史的三級古蹟，「旱溪媽祖遶境十八庄」名列台灣宗教百景。其配祀之月老星君全台求姻緣最為聞名。",
     "surrounding": "傳統老牌青草茶店（阿嬤青草茶）、旱溪肉圓、晚上有熱鬧的旱溪夜市。",
-    "x": 450,
-    "y": 290
+    "lat": 24.1435,
+    "lng": 120.6921
   },
   {
     "id": "tc-03",
@@ -33,8 +33,8 @@ const TEMPLE_DATA = [
     "tag": ["求財運", "求平安"],
     "history": "樓頂高達146台尺的巨大關公坐像為著名地標，民間多來此求財（武財神）與祈求行車平安。",
     "surrounding": "台中火車站後站商圈、傳統糕點。適合求財後順道祈求金錢龜。",
-    "x": 460,
-    "y": 315
+    "lat": 24.1365,
+    "lng": 120.6921
   },
   {
     "id": "tc-04",
@@ -45,8 +45,8 @@ const TEMPLE_DATA = [
     "tag": ["求健康"],
     "history": "擁有200多年歷史，早期為地方醫療與健康信仰中心，廟宇建築石雕與木雕極具工藝價值。",
     "surrounding": "北區在地老街小吃，傳統中藥行聚落歷史底蘊。",
-    "x": 410,
-    "y": 260
+    "lat": 24.1575,
+    "lng": 120.6828
   },
   {
     "id": "tc-05",
@@ -57,8 +57,8 @@ const TEMPLE_DATA = [
     "tag": ["求平安", "經商順利"],
     "history": "俗稱「台中媽祖」，見證中區老城區百年繁華，廟內高懸光緒皇帝御賜「海晏河清」古匾。",
     "surrounding": "台中中區老城區、第二市場美食（山河魯肉飯、王記菜頭粿）。",
-    "x": 425,
-    "y": 280
+    "lat": 24.1445,
+    "lng": 120.6828
   },
   {
     "id": "tc-06",
@@ -69,8 +69,8 @@ const TEMPLE_DATA = [
     "tag": ["求功名"],
     "history": "清光緒年間由地方義塾改建，保存極為完整的傳統書院式四合院廟宇建築。考季時掛滿准考證。",
     "surrounding": "北屯傳統市集小吃，適合準備蔥、蒜、芹菜等傳統供品前往參拜。",
-    "x": 435,
-    "y": 220
+    "lat": 24.1785,
+    "lng": 120.6944
   },
   {
     "id": "tc-07",
@@ -81,8 +81,8 @@ const TEMPLE_DATA = [
     "tag": ["求財運"],
     "history": "供奉由四川請回、距今千年的開基始祖財神爺金身，為台中極具指標性的補財庫、迎正財聖地。",
     "surrounding": "北屯商圈，廟內提供傳統發財金、財頭金等獨特互動體驗。",
-    "x": 455,
-    "y": 200
+    "lat": 24.1855,
+    "lng": 120.7037
   },
   {
     "id": "tc-08",
@@ -93,8 +93,8 @@ const TEMPLE_DATA = [
     "tag": ["賞古蹟"],
     "history": "國家三級古蹟，傳統客家「雙堂二橫」宗祠建築，木雕與屋頂燕尾脊展現極高之傳統美學。",
     "surrounding": "逢甲商圈外圍，鬧中取靜的清代古厝文史景點。",
-    "x": 350,
-    "y": 255
+    "lat": 24.1715,
+    "lng": 120.6371
   },
   {
     "id": "tc-09",
@@ -105,8 +105,8 @@ const TEMPLE_DATA = [
     "tag": ["求平安", "全方位"],
     "history": "中台灣信仰重鎮，年度「大甲媽祖遶境進香」名列世界三大宗教盛事，香火終年不斷。",
     "surrounding": "大甲糕餅一條街（奶油酥餅、綠豆椪）、蔣公路夜市、大甲芋頭沙牛奶。",
-    "x": 180,
-    "y": 100
+    "lat": 24.3455,
+    "lng": 120.6214
   },
   {
     "id": "tc-10",
@@ -117,8 +117,8 @@ const TEMPLE_DATA = [
     "tag": ["求健康", "求子嗣"],
     "history": "在地人稱「觀音亭」，為台中最大的觀音廟。建於清康熙年間，廟內留有乾隆年間古碑記。",
     "surrounding": "清水阿財米糕、王塔米糕、廟前樹下阿婆粉圓冰。",
-    "x": 160,
-    "y": 165
+    "lat": 24.2665,
+    "lng": 120.5757
   },
   {
     "id": "tc-11",
@@ -129,8 +129,8 @@ const TEMPLE_DATA = [
     "tag": ["求功名", "賞古蹟"],
     "history": "國家三級古蹟，早期為「大甲義塾」，建築風格古樸，完整保留清代學堂的建築美學與木雕紋飾。",
     "surrounding": "大甲老街區，與鎮瀾宮相距不遠，適合規劃單日文史雙廟之旅。",
-    "x": 170,
-    "y": 80
+    "lat": 24.3525,
+    "lng": 120.6121
   },
   {
     "id": "tc-12",
@@ -141,8 +141,8 @@ const TEMPLE_DATA = [
     "tag": ["求平安", "改運"],
     "history": "俗稱「沙鹿天公廟」，建於清嘉慶年間，為台灣最具代表性的三座古老天公廟之一。正月初九天公生盛況空前。",
     "surrounding": "沙鹿火車站周邊美食、傳統肉圓、沙鹿大骨湯。",
-    "x": 200,
-    "y": 215
+    "lat": 24.2365,
+    "lng": 120.5664
   },
   {
     "id": "tc-13",
@@ -153,8 +153,8 @@ const TEMPLE_DATA = [
     "tag": ["求平安", "賞古蹟"],
     "history": "位於大里老街，建於乾隆年間。見證舊時大里杙作為全台第四大港口「千帆泊岸」的輝煌歷史。",
     "surrounding": "大里老街、紅磚亭仔腳建築、老街傳統涼麵與古早味豆花。",
-    "x": 430,
-    "y": 370
+    "lat": 24.0985,
+    "lng": 120.6828
   },
   {
     "id": "tc-14",
@@ -165,8 +165,8 @@ const TEMPLE_DATA = [
     "tag": ["尋失物", "求平安"],
     "history": "供奉清代因保護鄉里而殉職的六位清兵與一隻忠犬。民間相傳專司「尋找失物」且極其靈驗。",
     "surrounding": "大里新興商圈，周邊有許多草根美食小吃。",
-    "x": 440,
-    "y": 395
+    "lat": 24.0845,
+    "lng": 120.6921
   },
   {
     "id": "tc-15",
@@ -177,8 +177,8 @@ const TEMPLE_DATA = [
     "tag": ["求財運"],
     "history": "擁有百年歷史，具備獨特的「廟中廟」景觀，古老石敢當與新廟共存，極具文史尋寶價值。",
     "surrounding": "烏日傳統聚落，周邊多稻田與工廠交織的草根地景。",
-    "x": 350,
-    "y": 380
+    "lat": 24.1065,
+    "lng": 120.6283
   },
   {
     "id": "tc-16",
@@ -189,8 +189,8 @@ const TEMPLE_DATA = [
     "tag": ["求平安", "賞古蹟"],
     "history": "豐原在地信仰核心，廟宇木雕與石刻保存完好。其側邊延伸出全台聞名的美食廟東夜市。",
     "surrounding": "豐原廟東夜市（清水排骨麵、正老牌肉丸、現炸菱角酥）。",
-    "x": 410,
-    "y": 140
+    "lat": 24.2525,
+    "lng": 120.7171
   },
   {
     "id": "tc-17",
@@ -201,8 +201,8 @@ const TEMPLE_DATA = [
     "tag": ["職場順利", "特殊職掌"],
     "history": "全台灣魯班廟的開基祖廟。見證東勢早期作為台灣重要林業伐木集散地的歷史，為工匠精神象徵。",
     "surrounding": "東勢客家老街、客家粄條、灌蛋餅、東勢林業文化園區。",
-    "x": 540,
-    "y": 110
+    "lat": 24.2595,
+    "lng": 120.8286
   },
   {
     "id": "tc-18",
@@ -213,8 +213,8 @@ const TEMPLE_DATA = [
     "tag": ["求功名", "賞古蹟"],
     "history": "國家三級古蹟，俗稱大肚文昌廟。其「磚雕藝術」堪稱全台第一，燕尾脊與紅磚牆為傳統視覺典範。",
     "surrounding": "大肚田野風光、在地紅磚文創小物、狀元糕。",
-    "x": 190,
-    "y": 310
+    "lat": 24.1505,
+    "lng": 120.5471
   },
   {
     "id": "tc-19",
@@ -225,8 +225,8 @@ const TEMPLE_DATA = [
     "tag": ["求平安", "賞古蹟"],
     "history": "建於清同治年間，廟內保留大量清代官員、地方仕紳題贈的古匾與石柱，古樸泥塑工藝精湛。",
     "surrounding": "神岡社口犂記餅店（台式月餅發源地）、傳統神岡小吃。",
-    "x": 360,
-    "y": 160
+    "lat": 24.2365,
+    "lng": 120.6921
   },
   {
     "id": "tc-20",
@@ -237,8 +237,8 @@ const TEMPLE_DATA = [
     "tag": ["求平安", "求功名"],
     "history": "主祀關聖帝君，香火鼎盛，為台中南區指標性儒宗神教廟宇，殿宇宏偉，環境清幽。",
     "surrounding": "國立公共資訊圖書館、五權車站美食、文青咖啡聚落。",
-    "x": 415,
-    "y": 325
+    "lat": 24.1225,
+    "lng": 120.6600
   }
 ];
 
@@ -320,6 +320,8 @@ const HIERARCHY_DATA = [
 let currentSelectedTempleId = "tc-01";
 let activeTagFilter = "";
 let currentCalendarDay = 2; // Default to June 16, 2026 (五月初二)
+let leafletMap = null;
+let leafletMarkers = [];
 
 // Initialize Application
 document.addEventListener("DOMContentLoaded", () => {
@@ -331,6 +333,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupCalendar();
   setupFoodMarket();
   setupHierarchy();
+  setupJiaobei();
   
   // Set default view to Map
   switchTab("map");
@@ -391,93 +394,100 @@ function switchTab(viewId) {
       container.classList.add("hidden");
     }
   });
+
+  // Invalidate Leaflet map size when map tab becomes visible
+  if (viewId === "map" && leafletMap) {
+    setTimeout(() => {
+      leafletMap.invalidateSize();
+    }, 100);
+  }
 }
 
-// 3. Map Drawing & Logic
+// 3. Map Drawing & Logic (Leaflet.js)
 function renderMap() {
-  const mapSvg = document.getElementById("map-canvas");
-  if (!mapSvg) return;
+  const mapContainer = document.getElementById("leaflet-map");
+  if (!mapContainer) return;
 
-  // Clear existing lantern markers (keep paths)
-  const existingLanterns = mapSvg.querySelectorAll(".lantern-marker");
-  existingLanterns.forEach(l => l.remove());
+  // Initialize map only once
+  if (!leafletMap) {
+    leafletMap = L.map("leaflet-map", {
+      center: [24.25, 120.72],
+      zoom: 11,
+      zoomControl: true,
+      attributionControl: false
+    });
 
-  // Render 20 temple coordinates as pulsing red lanterns
+    // OpenStreetMap tile layer (free, no API key)
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 18,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
+    }).addTo(leafletMap);
+  }
+
+  // Clear existing markers
+  leafletMarkers.forEach(m => m.remove());
+  leafletMarkers = [];
+
+  // Create custom markers for each temple
   TEMPLE_DATA.forEach(temple => {
-    // Check filter
     const matchesFilter = !activeTagFilter || temple.tag.includes(activeTagFilter);
-    const filterClass = matchesFilter ? "lantern-active" : "lantern-faded";
 
-    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    g.setAttribute("class", `lantern-marker cursor-pointer ${filterClass} transition-all duration-300`);
-    g.setAttribute("transform", `translate(${temple.x}, ${temple.y})`);
-    g.setAttribute("data-id", temple.id);
+    // Build marker HTML: dual-layer structure
+    // Outer: fixed hit area (group), Inner: visual lantern with animation
+    const markerHtml = `
+      <div class="marker-hit-area ${matchesFilter ? '' : 'marker-faded'}">
+        ${matchesFilter ? '<div class="marker-pulse-ring"></div>' : ''}
+        <div class="marker-visual">
+          <div class="marker-lantern">
+            <div class="marker-lantern-body">
+              <span class="marker-lantern-text">${temple.name.split(' ')[0].substring(0, 2)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
 
-    // Lantern Pulse ring (only active/matched ones)
-    if (matchesFilter) {
-      const pulseRing = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-      pulseRing.setAttribute("r", "16");
-      pulseRing.setAttribute("fill", "none");
-      pulseRing.setAttribute("stroke", "var(--color-imperial-red)");
-      pulseRing.setAttribute("stroke-width", "2");
-      pulseRing.setAttribute("opacity", "0.6");
-      pulseRing.setAttribute("class", "animate-ping");
-      g.appendChild(pulseRing);
-    }
-
-    // Outer lantern shape
-    const baseCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    baseCircle.setAttribute("r", "8");
-    baseCircle.setAttribute("fill", matchesFilter ? "var(--color-imperial-red)" : "#d1cfc7");
-    baseCircle.setAttribute("stroke", "var(--color-smoked-gold)");
-    baseCircle.setAttribute("stroke-width", "1.5");
-    g.appendChild(baseCircle);
-
-    // Gold core
-    const coreCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    coreCircle.setAttribute("r", "3");
-    coreCircle.setAttribute("fill", matchesFilter ? "var(--color-smoked-gold)" : "#a8a7a1");
-    g.appendChild(coreCircle);
-
-    // Label / Text banner on hover
-    const textGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    textGroup.setAttribute("class", "lantern-label pointer-events-none opacity-0 transition-opacity duration-200");
-    textGroup.setAttribute("transform", "translate(0, -16)");
-
-    const textBg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-    textBg.setAttribute("x", "-60");
-    textBg.setAttribute("y", "-12");
-    textBg.setAttribute("width", "120");
-    textBg.setAttribute("height", "22");
-    textBg.setAttribute("rx", "3");
-    textBg.setAttribute("fill", "var(--color-charcoal-black)");
-    textBg.setAttribute("stroke", "var(--color-smoked-gold)");
-    textBg.setAttribute("stroke-width", "1");
-    textGroup.appendChild(textBg);
-
-    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-    text.setAttribute("text-anchor", "middle");
-    text.setAttribute("fill", "var(--color-paper-white)");
-    text.setAttribute("font-size", "11px");
-    text.setAttribute("font-family", "'Noto Serif TC', serif");
-    text.setAttribute("y", "3");
-    text.textContent = temple.name;
-    textGroup.appendChild(text);
-
-    g.appendChild(textGroup);
-
-    // Interaction Events
-    g.addEventListener("mouseenter", () => {
-      textGroup.setAttribute("class", "lantern-label pointer-events-none opacity-100 transition-opacity duration-200");
-    });
-    g.addEventListener("mouseleave", () => {
-      textGroup.setAttribute("class", "lantern-label pointer-events-none opacity-0 transition-opacity duration-200");
-    });
-    g.addEventListener("click", () => {
-      selectTemple(temple.id);
+    const icon = L.divIcon({
+      html: markerHtml,
+      className: 'custom-leaflet-marker',
+      iconSize: [48, 48],
+      iconAnchor: [24, 24]
     });
 
-    mapSvg.appendChild(g);
+    const marker = L.marker([temple.lat, temple.lng], { icon: icon });
+
+    // Build custom popup content
+    const popupContent = `
+      <div class="popup-vintage">
+        <div class="popup-header">
+          <span class="popup-temple-name">${temple.name}</span>
+          <span class="popup-region-tag">${temple.region}</span>
+        </div>
+        <div class="popup-deity">
+          <strong>主神：</strong>${temple.main_deity}
+        </div>
+        <p class="popup-history">${temple.history}</p>
+        <div class="popup-tags">
+          ${temple.tag.map(t => `<span class="popup-tag">${t}</span>`).join('')}
+        </div>
+        <button class="popup-detail-btn" onclick="selectTemple('${temple.id}')">
+          進入線裝書查看完整記載 →
+        </button>
+        <div class="popup-seal">
+          <span class="popup-seal-text">台中<br>廟事</span>
+        </div>
+      </div>
+    `;
+
+    marker.bindPopup(popupContent, {
+      maxWidth: 300,
+      minWidth: 240,
+      closeButton: true,
+      offset: [0, -8]
+    });
+
+    marker.addTo(leafletMap);
+    leafletMarkers.push(marker);
   });
 }
 
@@ -545,11 +555,22 @@ function renderFilteredList() {
 
 function selectTemple(templeId) {
   currentSelectedTempleId = templeId;
-  
-  // Highlight card list
   renderFilteredList();
-  
-  // Auto switch and load in thread-bound book details
+
+  const temple = TEMPLE_DATA.find(t => t.id === templeId);
+  if (temple && leafletMap) {
+    leafletMap.setView([temple.lat, temple.lng], 13, { animate: true, duration: 0.8 });
+    const marker = leafletMarkers.find(m => {
+      const ll = m.getLatLng();
+      return Math.abs(ll.lat - temple.lat) < 0.0001 && Math.abs(ll.lng - temple.lng) < 0.0001;
+    });
+    if (marker) {
+      switchTab("map");
+      setTimeout(() => { marker.openPopup(); }, 600);
+      return;
+    }
+  }
+
   renderBookView(templeId);
   switchTab("book");
 }
@@ -619,9 +640,14 @@ function renderBookView(templeId) {
           <div class="flex gap-2">
             ${temple.tag.map(t => `<span class="px-2 py-0.5 text-xs bg-secondary/10 text-secondary border border-secondary/20 rounded font-serif">${t}</span>`).join('')}
           </div>
-          <button onclick="switchTab('map')" class="text-xs text-primary font-serif font-bold hover:underline">
-            ← 返回輿圖尋找
-          </button>
+          <div class="flex items-center gap-3">
+            <button onclick="openJiaobeiModal('${temple.id}')" class="text-xs text-primary font-serif font-bold border border-primary/40 px-3 py-1.5 rounded hover:bg-primary hover:text-paper transition-all duration-200">
+              🙏 向神明請示
+            </button>
+            <button onclick="switchTab('map')" class="text-xs text-primary font-serif font-bold hover:underline">
+              ← 返回輿圖尋找
+            </button>
+          </div>
         </div>
       </div>
     `;
@@ -925,4 +951,188 @@ function setupHierarchy() {
 
     container.appendChild(layerDiv);
   });
+}
+
+// =============================================
+// 9. 擲筊杯 (Jiaobei Fortune Casting) System
+// =============================================
+
+const jiaobeiState = {
+  isThrowing: false,
+  currentTempleId: null,
+  streak: { sheng: 0, xiao: 0, yin: 0 },
+  totalThrows: 0
+};
+
+const JIAOBEI_RESULTS = {
+  sheng: {
+    name: '聖筊',
+    color: '#A61C1C',
+    icon: '🔴',
+    messages: [
+      '恭得聖筊！神明應允，心中所求必得庇佑。',
+      '聖筊降臨！神明微笑點頭，此事可行。',
+      '得聖筊者，天時地利人和，可放心前行。',
+      '神明賜聖筊，所求之事順遂如意。'
+    ]
+  },
+  xiao: {
+    name: '笑筊',
+    color: '#C5A059',
+    icon: '🟡',
+    messages: [
+      '神明微笑，未置可否，請再誠心請示。',
+      '笑筊！神明覺得有趣，或許時機未到。',
+      '神明笑而不答，請重新整理思緒再問。',
+      '笑筊降臨，所求之事尚需三思而行。'
+    ]
+  },
+  yin: {
+    name: '陰筊',
+    color: '#555555',
+    icon: '⚫',
+    messages: [
+      '陰筊！神明搖頭，此事暫不可行，宜另謀他途。',
+      '得陰筊者，時運未至，請耐心等待。',
+      '神明示警，此事有阻礙，建議重新評估。',
+      '陰筊降臨，所求之事不宜強求，順其自然為上。'
+    ]
+  }
+};
+
+function openJiaobeiModal(templeId) {
+  jiaobeiState.currentTempleId = templeId;
+  jiaobeiState.isThrowing = false;
+
+  const temple = TEMPLE_DATA.find(t => t.id === templeId);
+  const modal = document.getElementById('jiaobei-modal');
+  const templeNameEl = document.getElementById('jiaobei-temple-name');
+  const throwBtn = document.getElementById('jiaobei-throw-btn');
+  const resultEl = document.getElementById('jiaobei-result');
+  const hintEl = document.getElementById('jiaobei-hint');
+  const leftPiece = document.getElementById('jiaobei-left');
+  const rightPiece = document.getElementById('jiaobei-right');
+
+  if (!modal || !temple) return;
+
+  templeNameEl.textContent = `向${temple.name.split(' ')[1] || temple.name}請示`;
+
+  // Reset state
+  throwBtn.disabled = false;
+  resultEl.innerHTML = '<p class="text-sm text-stone-400 font-serif" id="jiaobei-hint">凝神靜氣，心中默念所求之事…</p>';
+
+  // Reset piece classes
+  leftPiece.className = 'jiaobei-piece jiaobei-idle-left';
+  leftPiece.querySelector('.jiaobei-inner').className = 'jiaobei-inner';
+  rightPiece.className = 'jiaobei-piece jiaobei-idle-right';
+  rightPiece.querySelector('.jiaobei-inner').className = 'jiaobei-inner';
+
+  // Show modal
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+}
+
+function closeJiaobeiModal() {
+  const modal = document.getElementById('jiaobei-modal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  modal.classList.remove('flex');
+}
+
+function throwJiaobei() {
+  if (jiaobeiState.isThrowing) return;
+  jiaobeiState.isThrowing = true;
+
+  const throwBtn = document.getElementById('jiaobei-throw-btn');
+  const resultEl = document.getElementById('jiaobei-result');
+  const leftPiece = document.getElementById('jiaobei-left');
+  const rightPiece = document.getElementById('jiaobei-right');
+  const leftInner = leftPiece.querySelector('.jiaobei-inner');
+  const rightInner = rightPiece.querySelector('.jiaobei-inner');
+
+  throwBtn.disabled = true;
+  resultEl.innerHTML = '';
+
+  // Reset faces
+  leftInner.className = 'jiaobei-inner';
+  rightInner.className = 'jiaobei-inner';
+
+  // Start throw animation
+  leftPiece.className = 'jiaobei-piece jiaobei-throw-left';
+  rightPiece.className = 'jiaobei-piece jiaobei-throw-right';
+
+  // Determine result after animation
+  setTimeout(() => {
+    const roll = Math.random();
+    let result;
+    if (roll < 0.50) {
+      result = 'sheng';
+    } else if (roll < 0.75) {
+      result = 'xiao';
+    } else {
+      result = 'yin';
+    }
+
+    const resultData = JIAOBEI_RESULTS[result];
+    jiaobeiState.totalThrows++;
+    jiaobeiState.streak[result]++;
+
+    // Apply result face states
+    if (result === 'sheng') {
+      // One flat, one round
+      leftInner.className = 'jiaobei-inner jiaobei-flat';
+    } else if (result === 'xiao') {
+      // Both flat
+      leftInner.className = 'jiaobei-inner jiaobei-flat';
+      rightInner.className = 'jiaobei-inner jiaobei-flat';
+    }
+    // yin: both stay round (default)
+
+    // Settle animation
+    leftPiece.className = `jiaobei-piece jiaobei-result-${result} jiaobei-left-settle`;
+    rightPiece.className = `jiaobei-piece jiaobei-result-${result} jiaobei-right-settle`;
+
+    // Show result text after settle
+    setTimeout(() => {
+      const message = resultData.messages[Math.floor(Math.random() * resultData.messages.length)];
+
+      resultEl.innerHTML = `
+        <div class="jiaobei-result-text" style="color: ${resultData.color}">
+          ${resultData.icon} 『${resultData.name}』
+        </div>
+        <div class="jiaobei-result-desc">
+          ${message}
+        </div>
+        <div class="jiaobei-streak">
+          累計 ${jiaobeiState.totalThrows} 擲：聖筊 ${jiaobeiState.streak.sheng} ｜ 笑筊 ${jiaobeiState.streak.xiao} ｜ 陰筊 ${jiaobeiState.streak.yin}
+        </div>
+      `;
+
+      // Re-enable throw button
+      throwBtn.disabled = false;
+      jiaobeiState.isThrowing = false;
+    }, 600);
+  }, 1300);
+}
+
+// Initialize Jiaobei Modal Events
+function setupJiaobei() {
+  const throwBtn = document.getElementById('jiaobei-throw-btn');
+  const closeBtn = document.getElementById('jiaobei-close-btn');
+  const modal = document.getElementById('jiaobei-modal');
+
+  if (throwBtn) {
+    throwBtn.addEventListener('click', throwJiaobei);
+  }
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeJiaobeiModal);
+  }
+  // Close on backdrop click
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeJiaobeiModal();
+      }
+    });
+  }
 }
