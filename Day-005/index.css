@@ -168,3 +168,26 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-imperial-red);
 }
+
+/* Deity Hierarchy / Pantheon Styles */
+.hierarchy-layer {
+  position: relative;
+}
+
+.deity-card {
+  backdrop-filter: blur(2px);
+  transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.deity-card:hover {
+  transform: translateY(-4px);
+  box-shadow:
+    0 16px 32px -8px rgba(166, 28, 28, 0.15),
+    0 0 0 1px var(--color-imperial-red),
+    0 0 20px rgba(197, 160, 89, 0.1);
+}
+
+.deity-card button:hover {
+  transform: scale(1.05);
+  transition: transform 0.15s ease;
+}

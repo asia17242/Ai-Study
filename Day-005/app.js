@@ -276,7 +276,47 @@ const NIGHT_MARKET_STALLS = [
   { id: "s-5", name: "金樹冰果室", x: 80, y: 65, desc: "超過七十年的老字號，招牌鳳梨冰酸甜古早味，加上一球香草冰淇淋是饕客吃法。" }
 ];
 
-// App State variables
+// Deity Hierarchy / Pantheon Data
+const HIERARCHY_DATA = [
+  {
+    "level": 1,
+    "level_name": "第一層：宇宙源流・至高天尊",
+    "deities": [
+      {
+        "name": "三清道祖",
+        "title": "元始天尊 / 靈寶天尊 / 道德天尊",
+        "story": "宇宙化生之最高本源，象徵洪元、混元、太初三個宇宙世紀。",
+        "duty": "宇宙運行、至高祈福"
+      }
+    ]
+  },
+  {
+    "level": 2,
+    "level_name": "第二層：天界主宰・萬神帝王",
+    "deities": [
+      {
+        "name": "玉皇上帝",
+        "title": "天公爺",
+        "story": "歷經三千二百劫證得金仙，天界最高行政首長，總管三界六道。",
+        "duty": "改運、謝恩、大辟庇護",
+        "temple_id": "tc-12"
+      }
+    ]
+  },
+  {
+    "level": 4,
+    "level_name": "第四層：督察與救度主宰",
+    "deities": [
+      {
+        "name": "天上聖母",
+        "title": "媽祖 / 林默娘",
+        "story": "宋代湄洲奇女子，能乘蓆渡海解救漁船，台灣最具影響力的全方位護國佑民之神。",
+        "duty": "消災解厄、出海平安、全方位祈福",
+        "temple_id": ["tc-01", "tc-02", "tc-05", "tc-09", "tc-13", "tc-16", "tc-19"]
+      }
+    ]
+  }
+];
 let currentSelectedTempleId = "tc-01";
 let activeTagFilter = "";
 let currentCalendarDay = 2; // Default to June 16, 2026 (五月初二)
@@ -290,6 +330,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderBookView(currentSelectedTempleId);
   setupCalendar();
   setupFoodMarket();
+  setupHierarchy();
   
   // Set default view to Map
   switchTab("map");
@@ -745,4 +786,143 @@ function showStallDetail(stall) {
       📍 豐原慈濟宮旁（廟東夜市內）
     </div>
   `;
+}
+
+// 8. Deity Hierarchy / Pantheon (神譜體系)
+function setupHierarchy() {
+  const container = document.getElementById("hierarchy-tree");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  HIERARCHY_DATA.forEach((layer, layerIndex) => {
+    const layerDiv = document.createElement("div");
+    layerDiv.className = "hierarchy-layer mb-10 flex flex-col items-center";
+
+    // Layer header bar
+    const headerBar = document.createElement("div");
+    headerBar.className = "w-full max-w-2xl text-center mb-4 py-2 rounded-sm";
+    headerBar.style.backgroundColor = layerIndex === 0 ? "#1a1a1a" : layerIndex === 1 ? "#5c4a1f" : "#4a1a1a";
+    headerBar.innerHTML = `
+      <span class="text-accent font-bold font-serif text-lg tracking-widest">${layer.level_name}</span>
+      <div class="text-[10px] text-accent/70 mt-0.5 font-serif">第 ${layer.level} 層神階</div>
+    `;
+
+    layerDiv.appendChild(headerBar);
+
+    // Connector line from header to cards
+    const connector = document.createElement("div");
+    connector.className = "w-0.5 h-8 mx-auto";
+    connector.style.backgroundColor = "var(--color-smoked-gold)";
+    connector.style.opacity = "0.5";
+    layerDiv.appendChild(connector);
+
+    // Deity cards grid
+    const cardsRow = document.createElement("div");
+    cardsRow.className = "flex flex-wrap justify-center gap-6 w-full max-w-4xl";
+
+    layer.deities.forEach(deity => {
+      const card = document.createElement("div");
+      card.className = "deity-card relative p-6 rounded border-2 border-accent/60 bg-paper/70 shadow-lg flex flex-col items-center text-center max-w-sm w-full transition-all duration-300 hover:shadow-xl hover:border-primary";
+
+      // Corner ornaments
+      const cornerTL = document.createElement("div");
+      cornerTL.className = "absolute top-2 left-2 w-3 h-3 border-t-2 border-l-2 border-accent/60";
+      card.appendChild(cornerTL);
+      const cornerTR = document.createElement("div");
+      cornerTR.className = "absolute top-2 right-2 w-3 h-3 border-t-2 border-r-2 border-accent/60";
+      card.appendChild(cornerTR);
+      const cornerBL = document.createElement("div");
+      cornerBL.className = "absolute bottom-2 left-2 w-3 h-3 border-b-2 border-l-2 border-accent/60";
+      card.appendChild(cornerBL);
+      const cornerBR = document.createElement("div");
+      cornerBR.className = "absolute bottom-2 right-2 w-3 h-3 border-b-2 border-r-2 border-accent/60";
+      card.appendChild(cornerBR);
+
+      // Deity Name (calligraphy style)
+      const nameEl = document.createElement("h3");
+      nameEl.className = "text-2xl font-calligraphy text-primary mb-1 tracking-wider";
+      nameEl.textContent = deity.name;
+      card.appendChild(nameEl);
+
+      // Title
+      const titleEl = document.createElement("p");
+      titleEl.className = "text-xs text-accent font-serif tracking-wide mb-3";
+      titleEl.textContent = deity.title;
+      card.appendChild(titleEl);
+
+      // Divider
+      const divider = document.createElement("div");
+      divider.className = "w-16 h-px bg-accent/40 mb-3";
+      card.appendChild(divider);
+
+      // Story
+      const storyEl = document.createElement("p");
+      storyEl.className = "text-sm text-stone-700 font-serif leading-relaxed mb-3";
+      storyEl.textContent = deity.story;
+      card.appendChild(storyEl);
+
+      // Duty tag
+      const dutyEl = document.createElement("div");
+      dutyEl.className = "flex flex-wrap justify-center gap-1 mb-4";
+      const duties = deity.duty.split("、");
+      duties.forEach(d => {
+        const tag = document.createElement("span");
+        tag.className = "px-2 py-0.5 text-xs bg-primary/10 text-primary border border-primary/20 rounded-full font-serif";
+        tag.textContent = d;
+        dutyEl.appendChild(tag);
+      });
+      card.appendChild(dutyEl);
+
+      // Connected Temples
+      if (deity.temple_id) {
+        const templeIds = Array.isArray(deity.temple_id) ? deity.temple_id : [deity.temple_id];
+        const templeSection = document.createElement("div");
+        templeSection.className = "w-full border-t border-accent/20 pt-3";
+
+        const templeLabel = document.createElement("p");
+        templeLabel.className = "text-[11px] text-stone-400 font-serif mb-2";
+        templeLabel.textContent = "⚡ 台中主祀宮廟：";
+        templeSection.appendChild(templeLabel);
+
+        const templeList = document.createElement("div");
+        templeList.className = "flex flex-wrap gap-1.5";
+
+        templeIds.forEach(tid => {
+          const t = TEMPLE_DATA.find(td => td.id === tid);
+          if (t) {
+            const templeBtn = document.createElement("button");
+            templeBtn.className = "text-xs bg-secondary/10 text-secondary border border-secondary/20 px-2 py-0.5 rounded font-serif hover:bg-secondary hover:text-paper transition-colors duration-200";
+            templeBtn.textContent = t.name.replace(/^(.*?)\s/, "");
+            templeBtn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              selectTemple(tid);
+            });
+            templeList.appendChild(templeBtn);
+          }
+        });
+
+        templeSection.appendChild(templeList);
+        card.appendChild(templeSection);
+      }
+
+      cardsRow.appendChild(card);
+    });
+
+    layerDiv.appendChild(cardsRow);
+
+    // Inter-layer connector (except last)
+    if (layerIndex < HIERARCHY_DATA.length - 1) {
+      const interConnector = document.createElement("div");
+      interConnector.className = "w-full flex justify-center mt-2";
+      const line = document.createElement("div");
+      line.className = "w-0.5 h-10";
+      line.style.backgroundColor = "var(--color-smoked-gold)";
+      line.style.opacity = "0.4";
+      interConnector.appendChild(line);
+      layerDiv.appendChild(interConnector);
+    }
+
+    container.appendChild(layerDiv);
+  });
 }
