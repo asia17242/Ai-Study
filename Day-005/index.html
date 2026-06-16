@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>台中廟事錄 - 台灣廟宇故事與民俗美食地圖</title>
+  <meta name="description" content="結合中式復古美學與流暢互動，探索台中20間指標性廟宇、主神功能、歲時慶典與廟口夜市美食。">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#A61C1C',      // 宮廷紅
+            secondary: '#2D6A4F',    // 琉璃綠
+            accent: '#C5A059',       // 煙燻金
+            paper: '#F7F4EB',        // 宣紙米白
+            charcoal: '#222222'      // 沉香烏黑
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="index.css">
+</head>
+<body class="bg-paper text-charcoal flex flex-col min-h-screen">
+
+  <!-- SVG Paper Fiber Texture Overlay -->
+  <svg class="pointer-events-none fixed top-0 left-0 w-full h-full opacity-[0.035]" xmlns="http://www.w3.org/2000/svg">
+    <filter id="paper-texture">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="5" result="noise" />
+      <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.35 0" />
+    </filter>
+    <rect width="100%" height="100%" filter="url(#paper-texture)" />
+  </svg>
+
+  <!-- 1. Header Plaque (黑底金字匾額) -->
+  <header class="w-full max-w-7xl mx-auto mt-4 px-4">
+    <div class="plaque-header p-6 flex flex-col items-center justify-center text-center rounded-sm">
+      <h1 class="plaque-gold-text text-3xl md:text-5xl font-calligraphy font-black mb-2 select-none">
+        台中廟事錄
+      </h1>
+      <p class="text-[10px] md:text-xs text-accent tracking-[0.2em] font-serif uppercase">
+        Taichung Temple Story Network • First Edition
+      </p>
+    </div>
+  </header>
+
+  <!-- 2. Today's Farmer's Almanac Ticker (今日老黃曆跑馬燈) -->
+  <section class="w-full max-w-7xl mx-auto mt-3 px-4">
+    <div class="border-t border-b border-double border-accent/60 py-1.5 overflow-hidden bg-charcoal/5 flex items-center">
+      <div class="text-xs text-primary font-bold px-3 border-r border-accent/40 whitespace-nowrap select-none font-serif flex items-center gap-1">
+        🏮 今日神農曆：
+      </div>
+      <div class="overflow-x-hidden w-full relative flex items-center">
+        <div id="almanac-ticker-text" class="text-xs text-stone-700 font-serif whitespace-nowrap px-4 select-none">
+          載入黃曆中...
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Navigation Tabs ( Cabinet Layout ) -->
+  <nav class="w-full max-w-7xl mx-auto mt-6 px-4">
+    <div class="flex flex-wrap border-b-2 border-accent">
+      <button data-view="map" class="nav-tab px-6 py-3 font-serif font-bold text-sm md:text-base border-t border-l border-r border-accent rounded-t-md mr-1 transition-all duration-200">
+        🗺️ 大千世界‧台中輿圖
+      </button>
+      <button data-view="book" class="nav-tab px-6 py-3 font-serif font-bold text-sm md:text-base border-t border-l border-r border-accent rounded-t-md mr-1 transition-all duration-200">
+        📚 尋神問事館
+      </button>
+      <button data-view="calendar" class="nav-tab px-6 py-3 font-serif font-bold text-sm md:text-base border-t border-l border-r border-accent rounded-t-md mr-1 transition-all duration-200">
+        📅 歲時慶典錄
+      </button>
+      <button data-view="food" class="nav-tab px-6 py-3 font-serif font-bold text-sm md:text-base border-t border-l border-r border-accent rounded-t-md mr-1 transition-all duration-200">
+        🍢 廟口尋寶誌
+      </button>
+    </div>
+  </nav>
+
+  <!-- 4. Main Views Containers -->
+  <main class="w-full max-w-7xl mx-auto flex-grow px-4 py-6">
+
+    <!-- View A: Map View -->
+    <div id="map-view" class="view-container grid grid-cols-1 lg:grid-cols-3 gap-6 hidden">
+      <!-- Interactive Map Scroll -->
+      <div class="lg:col-span-2 flex flex-col justify-between p-4 rounded border border-accent/40 bg-paper/30 shadow-sm relative min-h-[500px]">
+        <div class="flex justify-between items-center mb-2 border-b border-accent/20 pb-2">
+          <h2 class="text-xl font-bold text-primary font-serif">台中古風尋寶輿圖</h2>
+          <span class="text-xs text-stone-500 font-serif">點擊燈籠 🏮 查看神明與建廟傳奇</span>
+        </div>
+        
+        <!-- SVG Vector Map Area -->
+        <div class="relative overflow-hidden w-full flex justify-center items-center bg-[#f2e9d5] border border-accent/30 rounded py-2">
+          <svg id="map-canvas" class="w-full max-w-[800px] aspect-[8/5]" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+            <!-- Background vintage tint -->
+            <rect width="100%" height="100%" fill="#f4ebdb" />
+            
+            <!-- Map Stylized Outlines of Districts -->
+            <!-- Coastline (海線) -->
+            <path d="M 50,50 L 260,50 L 240,230 L 220,310 L 150,380 L 70,380 Z" fill="#ebdfc6" stroke="#c5a059" stroke-width="1.5" stroke-dasharray="3,3" />
+            <text x="110" y="240" fill="#a68444" font-family="'Noto Serif TC', serif" font-weight="bold" font-size="14px" opacity="0.7">海線地區</text>
+
+            <!-- Mountain (山線) -->
+            <path d="M 260,50 L 750,50 L 750,180 L 520,220 L 320,180 Z" fill="#eedbb5" stroke="#c5a059" stroke-width="1.5" stroke-dasharray="3,3" />
+            <text x="500" y="150" fill="#a68444" font-family="'Noto Serif TC', serif" font-weight="bold" font-size="14px" opacity="0.7">山線地區</text>
+
+            <!-- City Center (市區) -->
+            <path d="M 320,180 L 520,220 L 490,340 L 370,350 L 290,300 Z" fill="#e3d5b3" stroke="#c5a059" stroke-width="1.5" stroke-dasharray="3,3" />
+            <text x="400" y="280" fill="#a68444" font-family="'Noto Serif TC', serif" font-weight="bold" font-size="14px" opacity="0.7">市區中心</text>
+
+            <!-- Tunya (屯區) -->
+            <path d="M 290,300 L 370,350 L 490,340 L 520,450 L 260,450 Z" fill="#dfcfad" stroke="#c5a059" stroke-width="1.5" stroke-dasharray="3,3" />
+            <text x="360" y="410" fill="#a68444" font-family="'Noto Serif TC', serif" font-weight="bold" font-size="14px" opacity="0.7">屯區地帶</text>
+
+            <!-- Compass visual decoration -->
+            <g transform="translate(720, 420) scale(0.6)">
+              <circle r="40" fill="none" stroke="#c5a059" stroke-width="1.5" />
+              <circle r="36" fill="none" stroke="#c5a059" stroke-width="0.5" stroke-dasharray="2,2" />
+              <line x1="0" y1="-45" x2="0" y2="45" stroke="#c5a059" stroke-width="1.5" />
+              <line x1="-45" y1="0" x2="45" y2="0" stroke="#c5a059" stroke-width="1.5" />
+              <polygon points="0,-42 -8,0 0,6" fill="#A61C1C" />
+              <polygon points="0,-42 8,0 0,6" fill="#c5a059" />
+              <polygon points="0,42 -8,0 0,-6" fill="#222" />
+              <polygon points="0,42 8,0 0,-6" fill="#777" />
+              <text x="-5" y="-50" fill="#A61C1C" font-family="serif" font-weight="bold" font-size="14px">N</text>
+            </g>
+          </svg>
+        </div>
+
+        <div class="mt-4 flex justify-between items-center text-xs text-stone-500 font-serif border-t border-accent/20 pt-2">
+          <span>📜 古樸手繪輿圖 僅供文化探索對照</span>
+          <span>版權所有 © 台中廟事錄推廣委員會</span>
+        </div>
+      </div>
+
+      <!-- Stamp Filters & Selection Column -->
+      <div class="flex flex-col gap-6">
+        <div class="p-6 rounded border border-accent/40 bg-paper/50 shadow-sm">
+          <h3 class="text-lg font-bold text-stone-900 font-serif border-b border-accent/30 pb-2 mb-4">
+            硃砂祈願印章 (篩選)
+          </h3>
+          <div class="grid grid-cols-2 gap-3 mb-4">
+            <button data-tag="求平安" class="stamp-filter py-3 text-center rounded text-sm bg-white/20 select-none">
+              求平安
+            </button>
+            <button data-tag="求財運" class="stamp-filter py-3 text-center rounded text-sm bg-white/20 select-none">
+              求財運
+            </button>
+            <button data-tag="求功名" class="stamp-filter py-3 text-center rounded text-sm bg-white/20 select-none">
+              求功名
+            </button>
+            <button data-tag="求健康" class="stamp-filter py-3 text-center rounded text-sm bg-white/20 select-none">
+              求健康
+            </button>
+            <button data-tag="尋失物" class="stamp-filter py-3 text-center rounded text-sm bg-white/20 select-none">
+              尋失物
+            </button>
+            <button data-tag="賞古蹟" class="stamp-filter py-3 text-center rounded text-sm bg-white/20 select-none">
+              賞古蹟
+            </button>
+          </div>
+          <p class="text-[11px] text-stone-500 font-serif leading-relaxed">
+            * 點選硃砂印章後，輿圖上對應的宮廟燈籠會亮起閃爍，無關宮廟將會變暗。再次點擊即可清除篩選。
+          </p>
+        </div>
+
+        <!-- Filtered results cards list -->
+        <div class="flex-grow p-4 rounded border border-accent/40 bg-paper/50 flex flex-col max-h-[300px] overflow-y-auto">
+          <h3 class="text-base font-bold text-stone-900 font-serif mb-3 border-b border-accent/20 pb-1.5">
+            宮廟快速通鑑
+          </h3>
+          <div id="temple-filtered-list" class="space-y-3 flex-grow">
+            <!-- Dynamic items rendered by script -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View B: Thread-Bound Book (線裝書) View -->
+    <div id="book-view" class="view-container max-w-5xl mx-auto hidden">
+      <div class="relative bg-[#faf8f2] border-2 border-accent rounded-sm shadow-xl p-2 min-h-[500px]">
+        <!-- Outer border decoration -->
+        <div class="border border-accent/50 p-2 md:p-6 flex flex-col md:flex-row relative">
+          <!-- Spine Binder lines in center -->
+          <div class="hidden md:block book-spine-lines"></div>
+
+          <!-- Left/Right book content wrapper -->
+          <div id="book-content-wrapper" class="w-full flex flex-col md:flex-row bg-[#faf8f2]">
+            <!-- Content loaded via app.js -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View C: Tear-Off Almanac (農民曆) -->
+    <div id="calendar-view" class="view-container max-w-xl mx-auto hidden">
+      <div class="calendar-page-shadow rounded bg-[#faf8f3] border border-accent/40 relative">
+        <div id="calendar-tear-page" class="w-full">
+          <!-- Almanac content rendered by javascript -->
+        </div>
+      </div>
+
+      <!-- Almanac paging controls -->
+      <div class="flex justify-between items-center mt-6 px-4">
+        <button id="cal-prev-btn" class="px-4 py-2 border border-accent text-accent font-serif font-bold hover:bg-accent hover:text-paper rounded transition-all duration-200">
+          ← 上一日 (撕頁)
+        </button>
+        <span class="text-xs text-stone-500 font-serif">左右撕頁可查看民俗吉日與節慶活動</span>
+        <button id="cal-next-btn" class="px-4 py-2 border border-accent text-accent font-serif font-bold hover:bg-accent hover:text-paper rounded transition-all duration-200">
+          下一日 (撕頁) →
+        </button>
+      </div>
+    </div>
+
+    <!-- View D: Food Guide & Offertory -->
+    <div id="food-view" class="view-container grid grid-cols-1 lg:grid-cols-3 gap-6 hidden">
+      <!-- Market Stall Map -->
+      <div class="lg:col-span-2 p-6 rounded border border-accent/40 bg-paper/40 flex flex-col justify-between min-h-[460px]">
+        <div class="mb-4 border-b border-accent/20 pb-2">
+          <h2 class="text-xl font-bold text-secondary font-serif">豐原慈濟宮 • 廟東夜市手繪指南</h2>
+          <p class="text-xs text-stone-500 font-serif mt-1">點擊綠色「食」字章，解鎖百年老店的傳奇小吃故事</p>
+        </div>
+
+        <!-- Stalls relative layout board -->
+        <div class="relative w-full aspect-[16/9] bg-[#f5ebd6] border border-accent/20 rounded shadow-inner p-4 overflow-hidden flex items-center justify-center">
+          <!-- Stylized road layout -->
+          <div class="absolute w-[80%] h-12 bg-[#ebdcb8] border-t border-b border-accent/30 rotate-12 flex items-center justify-center font-bold text-stone-600 font-serif text-sm tracking-widest shadow-sm select-none opacity-90">
+            廟東美食街 (中正路167巷)
+          </div>
+          
+          <!-- Large center temple represent box -->
+          <div class="absolute left-8 bottom-6 w-32 h-24 bg-[#e5cfac] border-2 border-accent text-primary flex flex-col items-center justify-center rounded font-serif shadow-md select-none rotate-2">
+            <span class="text-xs text-accent">⛩️ 信仰起點</span>
+            <span class="font-bold text-base mt-1">豐原慈濟宮</span>
+          </div>
+
+          <!-- Stalls dynamic containers overlay -->
+          <div id="market-map-canvas" class="absolute inset-0">
+            <!-- Buttons dynamically generated by script -->
+          </div>
+        </div>
+
+        <div class="mt-4 border-t border-accent/15 pt-2 text-[11px] text-stone-400 font-serif">
+          * 傳統廟口街市往往是信仰與美食的發源地，兩者共生百年，相輔相成。
+        </div>
+      </div>
+
+      <!-- Stall detailed stories & traditional offerings guide -->
+      <div class="flex flex-col gap-6">
+        <!-- Story Panel -->
+        <div class="p-6 rounded border border-accent/40 bg-paper/50 min-h-[200px] flex flex-col justify-between shadow-sm">
+          <div>
+            <h3 class="text-lg font-bold text-stone-900 font-serif border-b border-accent/30 pb-2 mb-3">
+              廟口食記故事
+            </h3>
+            <div id="stall-detail-panel" class="py-2">
+              <p class="text-sm text-stone-500 font-serif leading-relaxed">
+                點選左側地圖上的「食」字標籤，可在此查看各個百年老攤的歷史由來與獨門配方。
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Offerings Education Info -->
+        <div class="p-6 rounded border border-accent/40 bg-paper/50 shadow-sm font-serif">
+          <h3 class="text-lg font-bold text-secondary border-b border-accent/30 pb-2 mb-3">
+            📚 拜拜供品小百科
+          </h3>
+          <ul class="space-y-3.5 text-xs text-stone-700 leading-relaxed">
+            <li>
+              <strong class="text-primary text-sm">🟢 蔥 (聰明)：</strong>
+              通常用於參拜文昌帝君，寓意考生思緒清明、答題聰穎。
+            </li>
+            <li>
+              <strong class="text-primary text-sm">🟢 芹菜 (勤勞)：</strong>
+              祈求讀書、工作勤奮不懈，持之以恆方能金榜題名。
+            </li>
+            <li>
+              <strong class="text-primary text-sm">🟢 蒜 (精打細算)：</strong>
+              適合經商者或會計職能參拜，意指能掐會算、帳目清晰、利潤充盈。
+            </li>
+            <li>
+              <strong class="text-primary text-sm">🟢 糯米麻糬 (黏錢)：</strong>
+              拜財神或土地公最愛，軟糯香黏的麻糬能將四方財氣牢牢黏住。
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer decoration bar -->
+  <footer class="w-full py-6 mt-12 border-t border-accent bg-charcoal/95 text-stone-400 text-center font-serif text-xs select-none">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-2">
+      <div>
+        大千世界，神明常在。台中廟事錄 (Taichung Temple Story Network) MVP 首發版
+      </div>
+      <div class="text-[10px] text-stone-500">
+        文化傳承，薪火相傳。本網頁採用 HTML5、Tailwind CSS 與 Vanilla JS 製作。
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application logic javascript script -->
+  <script src="app.js"></script>
+</body>
+</html>

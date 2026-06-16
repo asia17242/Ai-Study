@@ -1,0 +1,170 @@
+@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+TC:wght@400;600;700;950&display=swap');
+
+:root {
+  --color-imperial-red: #A61C1C;
+  --color-smoked-gold: #C5A059;
+  --color-paper-white: #F7F4EB;
+  --color-charcoal-black: #222222;
+  --color-glazed-green: #2D6A4F;
+  --color-paper-shadow: #e0dac9;
+}
+
+body {
+  background-color: var(--color-paper-white);
+  background-image: radial-gradient(circle at center, #faf8f3 0%, #f0ebd9 100%);
+  color: var(--color-charcoal-black);
+  font-family: 'Noto Serif TC', serif;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Calligraphy font class */
+.font-calligraphy {
+  font-family: 'Ma Shan Zheng', cursive, 'Noto Serif TC', serif;
+}
+
+/* Plaque (匾額) styling */
+.plaque-header {
+  background: linear-gradient(135deg, #181818 0%, #101010 100%);
+  border: 4px solid var(--color-smoked-gold);
+  outline: 2px solid #000;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.3), 
+    0 2px 4px -1px rgba(0, 0, 0, 0.2),
+    inset 0 0 20px rgba(197, 160, 89, 0.25);
+  position: relative;
+}
+
+.plaque-gold-text {
+  color: var(--color-smoked-gold);
+  text-shadow: 
+    1px 1px 0px #000, 
+    2px 2px 0px #705527, 
+    3px 3px 0px #503d1c,
+    0 0 8px rgba(197, 160, 89, 0.6);
+  letter-spacing: 0.15em;
+}
+
+/* Red Cinnabar Stamp Style (硃砂印章) */
+.stamp-filter {
+  background-color: transparent;
+  border: 2px solid var(--color-imperial-red);
+  color: var(--color-imperial-red);
+  font-family: 'Noto Serif TC', serif;
+  font-weight: 900;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: inset 0 0 4px rgba(166, 28, 28, 0.1), 0 1px 2px rgba(166, 28, 28, 0.15);
+  outline: 1px solid transparent;
+  outline-offset: 2px;
+}
+
+.stamp-filter:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: inset 0 0 8px rgba(166, 28, 28, 0.2), 0 4px 6px rgba(166, 28, 28, 0.2);
+}
+
+.stamp-filter:active {
+  transform: translateY(1px) scale(0.96);
+  box-shadow: inset 0 0 10px rgba(166, 28, 28, 0.4);
+}
+
+.stamp-active {
+  background-color: var(--color-imperial-red) !important;
+  color: var(--color-paper-white) !important;
+  box-shadow: 
+    0 0 0 2px var(--color-paper-white), 
+    0 0 0 4px var(--color-imperial-red),
+    0 4px 6px rgba(166, 28, 28, 0.35);
+  transform: scale(1.02);
+}
+
+/* Wan Pattern Borders (卍字窗格) */
+.wanz-border-top {
+  background-image: radial-gradient(circle, var(--color-smoked-gold) 1.5px, transparent 1.5px);
+  background-size: 8px 8px;
+  height: 8px;
+  width: 100%;
+  opacity: 0.7;
+}
+
+/* Map Canvas Elements */
+.map-scroll-bg {
+  background-color: #f5eedc;
+  background-image: 
+    radial-gradient(circle at 30% 20%, #f6ebd2 0%, transparent 60%),
+    radial-gradient(circle at 80% 70%, #ebdcb9 0%, transparent 60%);
+  border: 1px solid var(--color-smoked-gold);
+  box-shadow: 
+    inset 0 0 30px rgba(197, 160, 89, 0.35),
+    0 10px 15px -3px rgba(0, 0, 0, 0.05);
+}
+
+.lantern-marker {
+  transform-origin: center;
+}
+
+.lantern-active {
+  opacity: 1;
+  filter: drop-shadow(0 0 6px rgba(166, 28, 28, 0.8));
+}
+
+.lantern-active:hover {
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) scale(1.3) !important;
+}
+
+.lantern-faded {
+  opacity: 0.3;
+  filter: grayscale(80%) blur(0.5px);
+}
+
+/* Thread-Bound Book Pagination Design */
+.book-spine-lines {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 8px;
+  transform: translateX(-50%);
+  background: linear-gradient(to right, 
+    rgba(0,0,0,0.08) 0%, 
+    rgba(0,0,0,0.15) 30%, 
+    rgba(255,255,255,0.4) 50%, 
+    rgba(0,0,0,0.15) 70%, 
+    rgba(0,0,0,0.08) 100%);
+  box-shadow: inset 1px 0 0 rgba(0,0,0,0.05), inset -1px 0 0 rgba(0,0,0,0.05);
+}
+
+/* Page transitions */
+#book-content-wrapper {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Tear-Off Almanac Card shadow */
+.calendar-page-shadow {
+  box-shadow: 
+    0 10px 25px -5px rgba(0,0,0,0.1),
+    0 8px 10px -6px rgba(0,0,0,0.08),
+    0 0 1px 1px rgba(197, 160, 89, 0.2);
+}
+
+/* Gold scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-paper-white);
+  border-left: 1px solid var(--color-smoked-gold);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-smoked-gold);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-imperial-red);
+}
