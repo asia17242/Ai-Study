@@ -748,3 +748,110 @@ body {
   cursor: not-allowed;
   transform: none;
 }
+
+/* =============================================
+   靈籤解惑閣 (Fortune Telling) Styles
+   ============================================= */
+
+/* Temple select dropdown */
+#fortune-temple-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%23C5A059' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+#fortune-temple-select:focus {
+  outline: none;
+  border-color: #a61c1c;
+  box-shadow: 0 0 0 2px rgba(166, 28, 28, 0.12);
+}
+
+/* Fortune slip card */
+.fortune-slip {
+  background-image: radial-gradient(circle at center, #f5ecd6 0%, #ecdcb8 100%);
+  box-shadow: inset 0 0 10px rgba(166, 28, 28, 0.1);
+  position: relative;
+  animation: fortune-slip-appear 0.6s ease-out;
+}
+
+.fortune-slip::before {
+  content: "⛩️";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 60px;
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+.fortune-slip::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #c5a059, transparent);
+}
+
+@keyframes fortune-slip-appear {
+  0% { opacity: 0; transform: scale(0.95) translateY(8px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Fortune placeholder */
+#fortune-placeholder {
+  transition: opacity 0.3s ease;
+}
+
+/* AI analysis sections */
+.fortune-section-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #444;
+  margin-top: 10px;
+  margin-bottom: 6px;
+  padding-left: 8px;
+  border-left: 3px solid #a61c1c;
+}
+
+.fortune-section-text {
+  font-size: 0.82rem;
+  color: #555;
+  line-height: 1.9;
+  text-align: justify;
+}
+
+.fortune-food-tip {
+  font-size: 0.78rem;
+  color: #8b6914;
+  background: rgba(197, 160, 89, 0.08);
+  border: 1px dashed rgba(197, 160, 89, 0.4);
+  border-radius: 4px;
+  padding: 10px 14px;
+  margin-top: 10px;
+  font-family: 'Noto Serif TC', serif;
+  line-height: 1.7;
+}
+
+/* Draw button animation */
+#draw-fortune-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+#draw-fortune-btn.shaking {
+  animation: btn-shake 0.4s ease-in-out;
+}
+
+@keyframes btn-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px) rotate(-1deg); }
+  40% { transform: translateX(4px) rotate(1deg); }
+  60% { transform: translateX(-3px) rotate(-0.5deg); }
+  80% { transform: translateX(3px) rotate(0.5deg); }
+}

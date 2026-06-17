@@ -84,6 +84,9 @@
       <button data-view="hierarchy" class="nav-tab px-6 py-3 font-serif font-bold text-sm md:text-base border-t border-l border-r border-accent rounded-t-md mr-1 transition-all duration-200">
         ☯️ 神譜體系
       </button>
+      <button data-view="fortune" class="nav-tab px-6 py-3 font-serif font-bold text-sm md:text-base border-t border-l border-r border-accent rounded-t-md mr-1 transition-all duration-200">
+        🥠 靈籤解惑閣
+      </button>
     </div>
   </nav>
 
@@ -275,6 +278,51 @@
         </div>
         <!-- Hierarchy rendered by app.js -->
         <div id="hierarchy-tree" class="w-full py-6"></div>
+      </div>
+    </div>
+
+  <!-- View F: Fortune Telling 靈籤解惑閣 -->
+    <div id="fortune-view" class="view-container max-w-4xl mx-auto hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- 左側：求籤輸入區 -->
+      <div class="p-6 rounded border border-accent/40 bg-paper/50 shadow-sm flex flex-col gap-4">
+        <h2 class="text-xl font-bold text-primary font-serif border-b border-accent/30 pb-2">誠心祈求</h2>
+
+        <div>
+          <label class="block text-sm text-stone-700 font-serif mb-1">選擇請示宮廟：</label>
+          <select id="fortune-temple-select" class="w-full p-2 border border-accent/50 rounded bg-white/50 font-serif text-stone-900"></select>
+        </div>
+
+        <div>
+          <label class="block text-sm text-stone-700 font-serif mb-1">祈求事項 (請具體說明)：</label>
+          <textarea id="fortune-question" rows="4" class="w-full p-2 border border-accent/50 rounded bg-white/50 font-serif text-stone-900 resize-none" placeholder="信女/弟子 某某某，想請示關於轉職/感情的發展..."></textarea>
+        </div>
+
+        <button id="draw-fortune-btn" class="mt-auto py-3 bg-primary text-paper font-bold font-serif rounded shadow-md hover:scale-[1.02] transition-transform flex items-center justify-center gap-2">
+          <span class="text-xl">筊</span> 擲筊求籤
+        </button>
+      </div>
+
+      <!-- 右側：籤詩與解籤結果區 -->
+      <div class="p-6 rounded border border-accent/40 bg-paper/50 shadow-sm relative min-h-[400px]">
+        <h2 class="text-xl font-bold text-secondary font-serif border-b border-accent/30 pb-2 mb-4">神明賜籤</h2>
+
+        <div id="fortune-result-panel" class="hidden flex flex-col gap-4">
+          <!-- 籤詩呈現區 -->
+          <div class="fortune-slip p-4 bg-[#f2e6ce] border-2 border-primary/60 rounded text-center shadow-inner">
+            <h3 id="fortune-title" class="text-lg font-bold text-primary font-serif mb-2"></h3>
+            <p id="fortune-poem" class="text-stone-800 font-serif leading-loose tracking-widest text-lg font-calligraphy"></p>
+          </div>
+
+          <!-- AI 模擬解籤結果 -->
+          <div id="ai-fortune-analysis" class="mt-4 space-y-4 text-stone-800 font-serif leading-relaxed text-sm bg-white/60 p-4 rounded border border-stone-200">
+          </div>
+        </div>
+
+        <div id="fortune-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-stone-400 font-serif">
+          <div class="text-4xl mb-2 opacity-50">🪔</div>
+          <p>心誠則靈，請於左側輸入祈求事項</p>
+        </div>
       </div>
     </div>
 
