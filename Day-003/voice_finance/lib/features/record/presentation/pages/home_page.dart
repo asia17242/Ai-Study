@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:responsive_framework/responsive_framework.dart';
 import '../../../../core/di/injection.dart';
 import '../../domain/transaction.dart';
 import '../bloc/transaction_bloc.dart';
 import '../widgets/voice_dialog.dart';
 import '../widgets/expense_chart.dart';
+import 'analysis_page.dart';
 
 IconData _getCategoryIcon(String category) {
   switch (category) {
@@ -93,6 +93,18 @@ class HomePage extends StatelessWidget {
                 title: const Text('Voice Finance'),
                 elevation: 0,
                 backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.analytics_outlined),
+                    tooltip: '分析與報表',
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AnalysisPage()),
+                      );
+                    },
+                  ),
+                ],
               ),
               body: isMobile
                   ? const MobileLayout()
@@ -848,7 +860,8 @@ class TransactionItemCard extends StatelessWidget {
           ),
         ),
         subtitle: Text(
-          '${tx.category} • $dateStr',
+          [tx.category, tx.merchant].where((s) => s != null && s.isNotEmpty).join(' · ') +
+              ' · $dateStr',
           style: const TextStyle(
             fontSize: 13,
             color: Colors.grey,

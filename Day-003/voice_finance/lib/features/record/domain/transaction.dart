@@ -7,6 +7,12 @@ class Transaction extends Equatable {
   final String description;
   final DateTime date;
   final TransactionType type;
+  final String? merchant;
+  final String? paymentMethod;
+  final List<String> tags;
+  final String? rawText;
+  final String? subCategory;
+  final List<String> items;
 
   const Transaction({
     this.id,
@@ -15,10 +21,29 @@ class Transaction extends Equatable {
     required this.description,
     required this.date,
     this.type = TransactionType.expense,
+    this.merchant,
+    this.paymentMethod,
+    this.tags = const [],
+    this.rawText,
+    this.subCategory,
+    this.items = const [],
   });
 
   @override
-  List<Object?> get props => [id, amount, category, description, date, type];
+  List<Object?> get props => [
+        id,
+        amount,
+        category,
+        description,
+        date,
+        type,
+        merchant,
+        paymentMethod,
+        tags,
+        rawText,
+        subCategory,
+        items,
+      ];
 }
 
 enum TransactionType { income, expense }

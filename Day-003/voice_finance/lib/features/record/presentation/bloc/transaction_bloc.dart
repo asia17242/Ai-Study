@@ -71,6 +71,12 @@ class TransactionBloc extends Bloc<TransactionEvent, TransactionState> {
             ? (DateTime.tryParse(result['date'] as String) ?? DateTime.now())
             : DateTime.now(),
         type: result['type'] == 'income' ? TransactionType.income : TransactionType.expense,
+        merchant: result['merchant'] as String?,
+        paymentMethod: result['payment_method'] as String?,
+        tags: (result['tags'] as List<dynamic>?)?.cast<String>() ?? const [],
+        rawText: result['raw_text'] as String?,
+        subCategory: result['sub_category'] as String?,
+        items: (result['items'] as List<dynamic>?)?.cast<String>() ?? const [],
       );
 
       final saveResult = await addTransaction(transaction);

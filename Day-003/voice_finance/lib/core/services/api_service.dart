@@ -1,17 +1,19 @@
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import '../constants/app_constants.dart';
+import '../utils/date_utils.dart';
 
 class ApiService {
   final http.Client client;
 
   ApiService({http.Client? client}) : this.client = client ?? http.Client();
 
+  String get _baseUrl => dotenv.env[AppConstants.apiBaseUrlKey] ?? AppConstants.baseUrl;
+
   Future<Map<String, dynamic>> parseVoice(String text) async {
-    final url = Uri.parse('${AppConstants.baseUrl}/api/parse');
-    
-    final now = DateTime.now();
-    final formattedDate = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+    final url = Uri.parse('$_baseUrl/api/parse');
+    final formattedDate = AppDateUtils.format(DateTime.now(), pattern: 'yyyy-MM-dd');
 
     try {
       final response = await client.post(

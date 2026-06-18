@@ -120,30 +120,49 @@
 
 ```
 Day-003/
-└── voice_finance/
-    ├── lib/
-    │   ├── core/                  # 核心層（常數、工具、主題）
-    │   │   ├── constants/
-    │   │   ├── theme/
-    │   │   └── utils/
-    │   ├── data/                  # 資料層
-    │   │   ├── datasources/
-    │   │   ├── models/
-    │   │   └── repositories/
-    │   ├── domain/                # 領域層
-    │   │   ├── entities/
-    │   │   ├── repositories/
-    │   │   └── usecases/
-    │   ├── presentation/          # 展示層
-    │   │   ├── blocs/
-    │   │   ├── pages/
-    │   │   └── widgets/
-    │   └── main.dart
-    ├── backend/                   # Python 後端
-    │   ├── gemini_service.py
-    │   └── requirements.txt
-    ├── test/                      # 測試
-    └── pubspec.yaml               # Flutter 依賴配置
+├── shared/                      # 共用常數 (分類表、商家對照)
+│   └── categories.py
+├── voice_finance/               # Flutter 跨平台應用
+│   ├── lib/
+│   │   ├── core/                # 核心層 (DI, 主題, API 服務, 工具)
+│   │   │   ├── constants/
+│   │   │   ├── di/
+│   │   │   ├── services/
+│   │   │   ├── theme/
+│   │   │   └── utils/
+│   │   ├── features/record/     # 記帳業務模組
+│   │   │   ├── data/            # 資料層 (Hive, Model, RepoImpl)
+│   │   │   ├── domain/          # 領域層 (Entity, UseCase, Repository)
+│   │   │   └── presentation/    # 展示層 (Pages, Widgets, BLoC)
+│   │   │       ├── bloc/
+│   │   │       ├── pages/
+│   │   │       └── widgets/
+│   │   └── main.dart
+│   ├── backend/                 # Python FastAPI 後端
+│   │   ├── gemini_service.py    # Gemini 2.5-Flash 解析服務
+│   │   ├── main.py              # FastAPI 入口
+│   │   └── requirements.txt
+│   ├── backend_poc/             # AI 解析 PoC 驗證
+│   ├── test/
+│   └── pubspec.yaml
+├── voice_finance_web/           # Web 獨立應用
+│   ├── app.py                   # FastAPI 路由層
+│   ├── services/                # 解析服務模組
+│   │   ├── schemas.py
+│   │   ├── normalizer.py
+│   │   ├── vendor_mapper.py
+│   │   ├── mock_parser.py
+│   │   └── gemini_parser.py
+│   └── static/
+│       ├── index.html
+│       ├── style.css
+│       └── js/
+│           ├── anime.js
+│           ├── charts.js
+│           ├── storage.js
+│           └── app.js
+├── Milestone1_Report.md
+└── README.md
 ```
 
 ---

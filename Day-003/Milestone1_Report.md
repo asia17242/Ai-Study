@@ -47,7 +47,7 @@
 ### 1. 🕒 時間基準動態處理 (Dynamic Time Baseline)
 * **現況與技術債**：原 PoC 後端提示詞中寫死了基準日期為 2026 年 6 月 13 日，這會導致未來的交易解析日期產生邏輯偏差。
 * **優化方式**：
-  - **前端 Flutter** 於 [`api_service.dart`](./voice_finance/lib/core/services/api_service.dart) 呼叫時，會動態獲取當前裝置的系統時間格式化為 `YYYY-MM-DD` 傳遞給 API 後端。
+  - **前端 Flutter** 於 [`lib/core/services/api_service.dart`](./voice_finance/lib/core/services/api_service.dart) 呼叫時，會動態獲取當前裝置的系統時間格式化為 `YYYY-MM-DD` 傳遞給 API 後端。
   - **後端 Python**（包括 PoC 解析器與 FastAPI 後端）重構為接收動態的 `current_date` 參數，並動態更新 Gemini API 的系統提示詞與解析上下文，以保障「昨天」、「前天」等時間代名詞在未來任何一天都能正確解析。
 
 ### 2. 📦 Hive 跨平台初始化路徑統一
