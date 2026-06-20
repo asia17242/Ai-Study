@@ -1,10 +1,13 @@
 import os
+import sys
 import json
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from services.schemas import (
     TransactionResponse, VoiceInput, InvoiceQRInput, TransactionPatchInput,

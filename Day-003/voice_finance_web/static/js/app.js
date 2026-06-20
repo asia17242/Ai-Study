@@ -788,9 +788,16 @@
     var tx = st.transactions.find(function (t) { return t.id === st.currentModalTxId; });
     if (!tx) return;
 
+    var rawVal = document.getElementById('modal-amount').value.replace(/,/g, '');
+    var amountVal = parseFloat(rawVal);
+    if (isNaN(amountVal) || amountVal <= 0) {
+      $a.triggerCustom('主人～金額格式不正確，請輸入大於 0 的數字！🧐');
+      return;
+    }
+
     tx.category = document.getElementById('modal-category').value;
     tx.sub_category = document.getElementById('modal-sub-category').value || '其他';
-    tx.amount = parseInt(document.getElementById('modal-amount').value.replace(/,/g, '')) || 0;
+    tx.amount = amountVal;
     tx.payment_method = document.getElementById('modal-payment').value;
     tx.merchant = document.getElementById('modal-merchant').value;
     tx.description = document.getElementById('modal-description').value;

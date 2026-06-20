@@ -43,8 +43,8 @@
     <!-- Main Content -->
     <main class="app-main-grid">
       
-      <!-- Left Column: Dashboard Stats, Mic, and Transaction Form -->
-      <div class="grid-left">
+      <!-- Column 1: Voice & Summaries -->
+      <div class="grid-col col-voice">
         
         <!-- Summary Cards -->
         <section class="summary-cards">
@@ -106,13 +106,13 @@
             </button>
           </div>
 
-          <!-- Carrier (手機條碼) Binding Settings -->
+          <!-- Carrier (手機載具) Binding Settings -->
           <div class="carrier-section">
             <div class="carrier-header">
               <span class="material-icons-round" style="font-size:18px; color: var(--accent-cyan);">phone_android</span>
               <span class="carrier-title">手機載具設定</span>
             </div>
-            <p class="carrier-subtitle">綁定手機條碼後，發票將自動同步至財政部電子發票整合平台</p>
+            <p class="carrier-subtitle">綁定手機載具後，發票將自動同步至財政部電子發票整合平台</p>
             <div class="carrier-fields">
               <div class="carrier-field">
                 <label class="carrier-label">手機載具條碼</label>
@@ -147,6 +147,10 @@
               <div class="mic-pulse-ring two"></div>
             </button>
             <div id="mic-status" class="mic-status-text">點選按鈕開始錄音</div>
+            <div class="voice-guide-carousel" id="voice-guide-carousel">
+              <span class="material-icons-round" style="font-size: 15px;">lightbulb</span>
+              <span id="voice-guide-text">試著說：「昨晚吃拉麵 300 元」</span>
+            </div>
           </div>
           
           <!-- Speech output text box -->
@@ -232,8 +236,8 @@
         
       </div>
       
-      <!-- Center Column: Charts + Assets & Liabilities -->
-      <div class="grid-center">
+      <!-- Column 2: Charts -->
+      <div class="grid-col col-charts">
         
         <!-- Chart Analysis Card -->
         <section class="glass-card chart-card">
@@ -267,6 +271,11 @@
             </div>
           </div>
         </section>
+        
+      </div>
+      
+      <!-- Column 3: Assets (Accounts & Liabilities) -->
+      <div class="grid-col col-assets">
 
         <!-- Bank Accounts Card -->
         <section class="glass-card accounts-card">
@@ -302,8 +311,8 @@
         
       </div>
       
-      <!-- Right Column: Ledger List -->
-      <div class="grid-right">
+      <!-- Column 4: Ledger List -->
+      <div class="grid-col col-ledger">
         
         <!-- Transaction List Card -->
         <section class="glass-card ledger-card">
@@ -343,11 +352,37 @@
               <p class="placeholder-subtext">請使用語音輸入或下方手動欄位開始記帳</p>
             </div>
           </div>
+          
+          <!-- Card-based Mobile Ledger -->
+          <div class="mobile-ledger-list" id="mobile-ledger-list">
+            <!-- Dynamically populated cards -->
+          </div>
         </section>
         
       </div>
       
     </main>
+    
+    <!-- Mobile Navigation Bar -->
+    <nav class="mobile-nav">
+      <button class="mobile-nav-item active" data-tab="voice">
+        <span class="material-icons-round">mic</span>
+        <span>語音記帳</span>
+      </button>
+      <button class="mobile-nav-item" data-tab="charts">
+        <span class="material-icons-round">pie_chart</span>
+        <span>圖表分析</span>
+      </button>
+      <button class="mobile-nav-item" data-tab="assets">
+        <span class="material-icons-round">account_balance</span>
+        <span>資產帳戶</span>
+      </button>
+      <button class="mobile-nav-item" data-tab="ledger">
+        <span class="material-icons-round">receipt_long</span>
+        <span>記帳明細</span>
+      </button>
+    </nav>
+    
   </div>
   
   <!-- QR Scanner Modal -->
