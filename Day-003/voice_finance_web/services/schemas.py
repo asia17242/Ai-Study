@@ -18,21 +18,28 @@ class TransactionResponse(BaseModel):
 
 
 class VoiceInput(BaseModel):
-    text: str
-    current_date: str = "2026-06-13"
+    text: str = Field(..., min_length=1, max_length=500, description="語音或文字輸入")
+    current_date: str = Field(
+        default="2026-06-13",
+        pattern=r"^\d{4}-\d{2}-\d{2}$",
+        description="YYYY-MM-DD 格式基準日期",
+    )
 
 
 class InvoiceQRInput(BaseModel):
-    qr_string: str = Field(description="台灣電子發票左側 QR Code 原始字串")
+    qr_string: str = Field(
+        ..., min_length=29, max_length=200,
+        description="台灣電子發票左側 QR Code 原始字串",
+    )
 
 
 class TransactionPatchInput(BaseModel):
-    category: Optional[str] = None
-    sub_category: Optional[str] = None
-    payment_method: Optional[str] = None
-    amount: Optional[float] = None
-    merchant: Optional[str] = None
-    description: Optional[str] = None
-    date: Optional[str] = None
-    type: Optional[str] = None
+    category: Optional[str] = Field(default=None, max_length=20)
+    sub_category: Optional[str] = Field(default=None, max_length=20)
+    payment_method: Optional[str] = Field(default=None, max_length=30)
+    amount: Optional[float] = Field(default=None, gt=0, le=99999999)
+    merchant: Optional[str] = Field(default=None, max_length=50)
+    description: Optional[str] = Field(default=None, max_length=200)
+    date: Optional[str] = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
+    type: Optional[str] = Field(default=None, pattern=r"^(expense|income)$")
     items: Optional[List[str]] = None

@@ -43,7 +43,7 @@
   }
 
   function saveDynamicOptions(opts) {
-    localStorage.setItem('voice_finance_dynamic_options', JSON.stringify(opts));
+    try { localStorage.setItem('voice_finance_dynamic_options', JSON.stringify(opts)); } catch (e) { console.error('Storage save failed:', e); }
   }
 
   function getDynamicOptions(type, parent) {
@@ -243,7 +243,11 @@
 
   // --- Transaction storage ---
   function saveTransactionsToStorage() {
-    localStorage.setItem('voice_finance_transactions', JSON.stringify(VoiceFinance.state.transactions));
+    try {
+      localStorage.setItem('voice_finance_transactions', JSON.stringify(VoiceFinance.state.transactions));
+    } catch (e) {
+      console.error('Storage save failed:', e);
+    }
   }
 
   function loadTransactionsFromStorage() {

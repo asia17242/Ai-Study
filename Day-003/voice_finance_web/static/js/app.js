@@ -29,18 +29,52 @@
 
   var st = VoiceFinance.state;
 
+  // ── DOM Cache (#13) ─────────────────────────────────────────────────
+  var dom = {};
+  function cacheDom() {
+    dom.totalBalance = document.getElementById('total-balance');
+    dom.totalIncome = document.getElementById('total-income');
+    dom.totalExpense = document.getElementById('total-expense');
+    dom.balanceStatus = document.getElementById('balance-status');
+    dom.budgetPercent = document.getElementById('budget-percent');
+    dom.budgetFill = document.getElementById('budget-progress-fill');
+    dom.budgetLabel = document.querySelector('.budget-label');
+    dom.ledgerTitle = document.getElementById('ledger-section-title');
+    dom.tbody = document.getElementById('transaction-list-body');
+    dom.noRecords = document.getElementById('no-records-placeholder');
+    dom.pieChart = document.getElementById('pie-chart-visual');
+    dom.barChart = document.getElementById('bar-chart-visual');
+    dom.chartLegend = document.getElementById('chart-legend-container');
+    dom.chartContent = document.querySelector('.chart-content');
+    dom.privacyIcon = document.getElementById('privacy-toggle-icon');
+  }
+
+  // ── Debounce (#11) ──────────────────────────────────────────────────
+  var _dashboardTimer = null;
+  function debouncedUpdateDashboard() {
+    clearTimeout(_dashboardTimer);
+    _dashboardTimer = setTimeout(updateDashboard, 50);
+  }
+
   // ======================================================================
   // Privacy Masking
   // ======================================================================
   function togglePrivacyMode() {
     st.isPrivacyMode = !st.isPrivacyMode;
-    var icon = document.getElementById('privacy-toggle-icon');
-    if (icon) {
-      icon.textContent = st.isPrivacyMode ? 'visibility_off' : 'visibility';
+    try { localStorage.setItem('voice_finance_privacy', st.isPrivacyMode); } catch (e) {}
+    if (dom.privacyIcon) {
+      dom.privacyIcon.textContent = st.isPrivacyMode ? 'visibility_off' : 'visibility';
     }
     updateDashboard();
     renderAccountsPanel();
     renderLoansPanel();
+  }
+
+  function loadPrivacyMode() {
+    st.isPrivacyMode = localStorage.getItem('voice_finance_privacy') === 'true';
+    if (dom.privacyIcon) {
+      dom.privacyIcon.textContent = st.isPrivacyMode ? 'visibility_off' : 'visibility';
+    }
   }
 
   function applyPrivacyMask() {
@@ -210,7 +244,9 @@
   // ======================================================================
   async function parseVoiceTransaction(text) {
     var statusEl = document.getElementById('mic-status');
+    var parseBtn = document.getElementById('parse-text-btn');
     statusEl.innerText = '⏳ 後端 AI 正在分析語意...';
+    if (parseBtn) { parseBtn.disabled = true; parseBtn.innerHTML = '<span class="spinner"></span> 分析中...'; }
 
     var today = $s.getFormattedDate(0);
 
@@ -277,10 +313,13 @@
     } catch (error) {
       console.error('API Error', error);
       statusEl.innerText = '❌ 連線後端伺服器失敗: ' + error.message;
+    } finally {
+      if (parseBtn) { parseBtn.disabled = false; parseBtn.innerHTML = '<span class="material-icons-round" style="font-size:16px;">send</span> 送出記帳'; }
     }
   }
 
   VoiceFinance.deleteTransaction = function (id) {
+    if (!confirm('確定要刪除這筆紀錄嗎？此操作無法復原。')) return;
     st.transactions = st.transactions.filter(function (t) { return t.id !== id; });
     $s.saveTransactionsToStorage();
     updateDashboard();
@@ -409,9 +448,8 @@
   function updateDashboard() {
     var displayTx = $s.getFilteredTransactions();
 
-    var titleEl = document.getElementById('ledger-section-title');
     var titles = { day: '本日記帳明細列表', week: '本週記帳明細列表', month: '本月記帳明細列表', year: '本年記帳明細列表' };
-    if (titleEl) titleEl.innerText = titles[st.activePeriod] || '記帳明細列表';
+    if (dom.ledgerTitle) dom.ledgerTitle.innerText = titles[st.activePeriod] || '記帳明細列表';
 
     var totalIncome = 0;
     var totalExpense = 0;
@@ -426,31 +464,29 @@
 
     var balance = totalIncome - totalExpense;
 
-    document.getElementById('total-balance').innerText = '$' + balance.toLocaleString();
-    document.getElementById('total-income').innerText = '$' + totalIncome.toLocaleString();
-    document.getElementById('total-expense').innerText = '$' + totalExpense.toLocaleString();
+    dom.totalBalance.innerText = '$' + balance.toLocaleString();
+    dom.totalIncome.innerText = '$' + totalIncome.toLocaleString();
+    dom.totalExpense.innerText = '$' + totalExpense.toLocaleString();
 
-    var balanceStatus = document.getElementById('balance-status');
     if (balance >= 0) {
-      balanceStatus.innerText = '狀態良好';
-      balanceStatus.className = 'trend-text positive';
+      dom.balanceStatus.innerText = '狀態良好';
+      dom.balanceStatus.className = 'trend-text positive';
     } else {
-      balanceStatus.innerText = '帳戶透支';
-      balanceStatus.className = 'trend-text negative';
+      dom.balanceStatus.innerText = '帳戶透支';
+      dom.balanceStatus.className = 'trend-text negative';
     }
 
     var tbody = document.getElementById('transaction-list-body');
     var noRecordsEl = document.getElementById('no-records-placeholder');
-    tbody.innerHTML = '';
+    dom.tbody.innerHTML = '';
 
     if (displayTx.length === 0) {
-      noRecordsEl.classList.add('active');
+      dom.noRecords.classList.add('active');
     } else {
-      noRecordsEl.classList.remove('active');
+      dom.noRecords.classList.remove('active');
 
+      var rowsHTML = '';
       displayTx.forEach(function (t) {
-        var tr = document.createElement('tr');
-
         var icon = $c.icons[t.category] || 'category';
         var color = $c.colors[t.category] || '#8395a7';
         var dateDisplay = $s.getRelativeDateLabel(t.date);
@@ -480,7 +516,8 @@
         var allPayments = $s.getPaymentMethods();
         if (!allPayments.includes('其他')) allPayments.push('其他');
 
-        tr.innerHTML =
+        rowsHTML +=
+          '<tr>' +
           '<td>' +
             '<div class="cat-column">' +
               '<div class="cat-icon-circle" style="background-color: ' + color + '20; color: ' + color + ';">' +
@@ -530,23 +567,26 @@
             '<button class="delete-action-btn" onclick="VoiceFinance.deleteTransaction(\'' + t.id + '\')">' +
               '<span class="material-icons-round">delete_outline</span>' +
             '</button>' +
-          '</td>';
-
-        tbody.appendChild(tr);
+          '</td>' +
+          '</tr>';
       });
+      dom.tbody.innerHTML = rowsHTML;
     }
 
     var displayExpenses = displayTx.filter(function (t) { return t.type === 'expense'; });
-    var chartContent = document.querySelector('.chart-content');
 
     if (st.activePeriod === 'year') {
       $c.renderBar(displayTx);
     } else {
-      document.getElementById('pie-chart-visual').style.display = '';
-      document.getElementById('bar-chart-visual').style.display = 'none';
-      document.getElementById('chart-legend-container').style.display = '';
-      if (chartContent) chartContent.classList.remove('has-bars');
-      $c.renderPie(totalExpense, displayExpenses);
+      dom.pieChart.style.display = '';
+      dom.barChart.style.display = 'none';
+      dom.chartLegend.style.display = '';
+      if (dom.chartContent) dom.chartContent.classList.remove('has-bars');
+      if (displayExpenses.length === 0) {
+        dom.pieChart.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.4);font-size:14px;">本月尚無支出紀錄</div>';
+      } else {
+        $c.renderPie(totalExpense, displayExpenses);
+      }
     }
 
     var periodBudget = st.activePeriod === 'day' ? Math.round(MONTHLY_BUDGET / 30) :
@@ -555,18 +595,16 @@
                        MONTHLY_BUDGET;
     var spendRatio = totalExpense / periodBudget;
     var percent = Math.min(Math.round(spendRatio * 100), 100);
-    document.getElementById('budget-percent').innerText = percent + '%';
-    var fillEl = document.getElementById('budget-progress-fill');
-    fillEl.style.width = percent + '%';
+    dom.budgetPercent.innerText = percent + '%';
+    dom.budgetFill.style.width = percent + '%';
     if (spendRatio > 0.8) {
-      fillEl.classList.add('warning');
+      dom.budgetFill.classList.add('warning');
     } else {
-      fillEl.classList.remove('warning');
+      dom.budgetFill.classList.remove('warning');
     }
 
-    var budgetLabelEl = document.querySelector('.budget-label');
     var budgetLabels = { day: '本日預算使用率', week: '本週預算使用率', month: '本月預算使用率', year: '本年預算使用率' };
-    if (budgetLabelEl) budgetLabelEl.innerText = budgetLabels[st.activePeriod] || '預算使用率';
+    if (dom.budgetLabel) dom.budgetLabel.innerText = budgetLabels[st.activePeriod] || '預算使用率';
 
     if (st.isPrivacyMode) applyPrivacyMask();
   }
@@ -1214,7 +1252,7 @@
   }
 
   function saveAccountsToStorage() {
-    localStorage.setItem('voice_finance_bank_accounts', JSON.stringify(st.bankAccounts));
+    try { localStorage.setItem('voice_finance_bank_accounts', JSON.stringify(st.bankAccounts)); } catch (e) { console.error('Storage save failed:', e); }
   }
 
   function renderAccountsPanel() {
@@ -1602,15 +1640,27 @@
     }
 
     loadCarrierFromStorage();
+
+    // ── Keyboard Shortcuts (#17) ─────────────────────────────────────
+    document.addEventListener('keydown', function (e) {
+      if (e.ctrlKey && e.key === 'm') { e.preventDefault(); openManualEntryModal(); }
+      if (e.key === 'Escape') {
+        closeTransactionModal();
+        closeManualEntryModal();
+        closeQrScanner();
+      }
+    });
   }
 
   // ======================================================================
   // Initialization
   // ======================================================================
   document.addEventListener('DOMContentLoaded', function () {
+    cacheDom();
     $s.loadTransactionsFromStorage();
     loadAccountsFromStorage();
     loadLoansFromStorage();
+    loadPrivacyMode();
     initSpeechRecognition();
     bindUIEvents();
     updateDashboard();
